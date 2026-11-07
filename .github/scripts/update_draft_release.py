@@ -35,7 +35,7 @@ def get_repo_slug() -> str:
             return cleaned.removesuffix(".git").strip()
     except Exception:
         pass
-    return "thanhba0505/wonderlab"
+    return "thanhba0505/central-gateway"
 
 
 def get_current_pkg_version() -> str:
@@ -204,7 +204,7 @@ def main() -> None:
 
     body_parts.append("---")
     body_parts.append(
-        "*Dự án mã nguồn mở Wonderlab — Khám phá Khoa học, Xác suất & Nghịch lý Trực quan.*"
+        "*Central Gateway — Centralized Notification Gateway & Cloud Infrastructure Hub.*"
     )
 
     if latest_tag:
@@ -217,7 +217,7 @@ def main() -> None:
         )
 
     body = "\n".join(body_parts).strip() + "\n"
-    title = f"✨ Wonderlab {next_tag}"
+    title = f"✨ Central Gateway {next_tag}"
 
     # 7. Kiểm tra và cập nhật bản Draft Release trên GitHub
     releases_json = run(["gh", "release", "list", "--json", "isDraft,tagName,name"])
