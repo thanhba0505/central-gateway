@@ -6,6 +6,7 @@ import {
   SendCiNotificationDto,
   SendCommunityNotificationDto,
   SendTestNotificationDto,
+  SendGitNotificationDto,
 } from './dto/notification.dto';
 
 @Injectable()
@@ -120,5 +121,12 @@ export class NotificationsService {
     }
     const payload = this.slackBuilder.buildTestPayload(channelId, dto);
     return this.sendSlackApi(payload, project?.id, dto.eventType || 'test');
+  }
+
+  async sendGitNotification(dto: SendGitNotificationDto) {
+    const channelId = await this.getTargetChannel(dto.project, 'git');
+    const project = await this.prisma.project.findUnique({ where: { slug: dto.project } });
+    const payload = this.slackBuilder.buildGitPayload(channelId, dto);
+    return this.sendSlackApi(payload, project?.id, 'git');
   }
 }

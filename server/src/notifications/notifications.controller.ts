@@ -6,6 +6,7 @@ import {
   SendCiNotificationDto,
   SendCommunityNotificationDto,
   SendTestNotificationDto,
+  SendGitNotificationDto,
 } from './dto/notification.dto';
 import { ApiKeyGuard } from '../auth/api-key.guard';
 
@@ -42,5 +43,12 @@ export class NotificationsController {
   @ApiResponse({ status: 200, description: 'Test notification sent successfully' })
   async notifyTest(@Body() dto: SendTestNotificationDto) {
     return this.notificationsService.sendTestNotification(dto);
+  }
+
+  @Post('git')
+  @ApiOperation({ summary: 'Dispatch Git activity alert (push, branch, PR) to Slack' })
+  @ApiResponse({ status: 200, description: 'Git notification sent successfully' })
+  async notifyGit(@Body() dto: SendGitNotificationDto) {
+    return this.notificationsService.sendGitNotification(dto);
   }
 }

@@ -4,6 +4,7 @@ import {
   SendCiNotificationDto,
   SendCommunityNotificationDto,
   SendTestNotificationDto,
+  SendGitNotificationDto,
 } from '../dto/notification.dto';
 
 @Injectable()
@@ -273,6 +274,182 @@ export class SlackBuilderService {
                   type: 'button',
                   text: { type: 'plain_text', text: '⚡ Open Control Plane' },
                   url: 'https://central-gateway-client.onrender.com',
+                  style: 'primary',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+  }
+
+  buildGitPayload(channelId: string, dto: SendGitNotificationDto) {
+    const repoName = dto.project === 'wonderlab' ? 'thanhba0505/wonderlab' : dto.project;
+    const actor = dto.actor || 'developer';
+
+    if (dto.eventType === 'branch_created') {
+      const baseBranch = dto.baseBranch || 'develop';
+      const refName = dto.refName || 'feature';
+      const compareUrl =
+        dto.compareUrl || `https://github.com/${repoName}/compare/${baseBranch}...${refName}`;
+
+      return {
+        channel: channelId,
+        blocks: [
+          {
+            type: 'header',
+            text: {
+              type: 'plain_text',
+              text: `🌿 [${dto.project.toUpperCase()}] New Branch Created`,
+              emoji: true,
+            },
+          },
+        ],
+        attachments: [
+          {
+            color: '#059669',
+            blocks: [
+              {
+                type: 'section',
+                fields: [
+                  { type: 'mrkdwn', text: `*Branch:*\n\`${refName}\`` },
+                  { type: 'mrkdwn', text: `*Created By:*\n\`@${actor}\`` },
+                  { type: 'mrkdwn', text: `*Base Ref:*\n\`${baseBranch}\`` },
+                  { type: 'mrkdwn', text: '*Event:*\n`BRANCH_CREATED`' },
+                ],
+              },
+              {
+                type: 'actions',
+                elements: [
+                  {
+                    type: 'button',
+                    text: { type: 'plain_text', text: '🌿 Compare Branch' },
+                    url: compareUrl,
+                    style: 'primary',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+    }
+
+    if (dto.eventType === 'pull_request') {
+      const isMerged = dto.prMerged === true;
+      const action = dto.prAction || 'opened';
+      let statusText = 'OPEN';
+      let title = `🔀 [${dto.project.toUpperCase()}] Pull Request Opened`;
+      let color = '#0284c7';
+
+      if (action === 'closed' && isMerged) {
+        statusText = 'MERGED';
+        title = `🟣 [${dto.project.toUpperCase()}] Pull Request Merged`;
+        color = '#8b5cf6';
+      } else if (action === 'closed') {
+        statusText = 'CLOSED';
+        title = `❌ [${dto.project.toUpperCase()}] Pull Request Closed`;
+        color = '#64748b';
+      } else if (action === 'reopened') {
+        statusText = 'REOPENED';
+        title = `🔄 [${dto.project.toUpperCase()}] Pull Request Reopened`;
+        color = '#0284c7';
+      }
+
+      return {
+        channel: channelId,
+        blocks: [
+          {
+            type: 'header',
+            text: { type: 'plain_text', text: title, emoji: true },
+          },
+        ],
+        attachments: [
+          {
+            color,
+            blocks: [
+              {
+                type: 'section',
+                fields: [
+                  { type: 'mrkdwn', text: `*PR:*\n\`#${dto.prNumber || ''}\`` },
+                  { type: 'mrkdwn', text: `*Status:*\n\`${statusText}\`` },
+                  {
+                    type: 'mrkdwn',
+                    text: `*Flow:*\n\`${dto.prHeadRef || ''}\` ➔ \`${dto.prBaseRef || ''}\``,
+                  },
+                  { type: 'mrkdwn', text: `*Author:*\n\`@${actor}\`` },
+                ],
+              },
+              {
+                type: 'section',
+                text: { type: 'mrkdwn', text: `*Title:*\n\`\`\`${dto.prTitle || ''}\`\`\`` },
+              },
+              {
+                type: 'actions',
+                elements: [
+                  {
+                    type: 'button',
+                    text: { type: 'plain_text', text: '🔀 View Pull Request' },
+                    url: dto.prUrl || `https://github.com/${repoName}/pulls`,
+                    style: 'primary',
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+    }
+
+    // Default to 'push'
+    const shortSha = dto.headCommit ? dto.headCommit.slice(0, 7) : '';
+    const commitLink = shortSha
+      ? `<https://github.com/${repoName}/commit/${dto.headCommit}|\`${shortSha}\`>`
+      : '`--`';
+    const commitLines =
+      dto.commitLines && dto.commitLines.length > 0
+        ? dto.commitLines.join('\n')
+        : `• ${shortSha || 'latest'}: Update ${dto.refName || 'branch'}`;
+
+    return {
+      channel: channelId,
+      blocks: [
+        {
+          type: 'header',
+          text: {
+            type: 'plain_text',
+            text: `📌 [${dto.project.toUpperCase()}] New Commits Pushed`,
+            emoji: true,
+          },
+        },
+      ],
+      attachments: [
+        {
+          color: '#0284c7',
+          blocks: [
+            {
+              type: 'section',
+              fields: [
+                { type: 'mrkdwn', text: `*Branch:*\n\`${dto.refName || 'develop'}\`` },
+                { type: 'mrkdwn', text: `*Author:*\n\`@${actor}\`` },
+                { type: 'mrkdwn', text: `*Commits:*\n\`${dto.commitCount || '1'} commit(s)\`` },
+                { type: 'mrkdwn', text: `*Latest SHA:*\n${commitLink}` },
+              ],
+            },
+            {
+              type: 'section',
+              text: { type: 'mrkdwn', text: `*Commit Log:*\n\`\`\`\n${commitLines}\n\`\`\`` },
+            },
+            {
+              type: 'actions',
+              elements: [
+                {
+                  type: 'button',
+                  text: { type: 'plain_text', text: '🔍 View Changes' },
+                  url:
+                    dto.compareUrl ||
+                    `https://github.com/${repoName}/commits/${dto.refName || 'develop'}`,
                   style: 'primary',
                 },
               ],

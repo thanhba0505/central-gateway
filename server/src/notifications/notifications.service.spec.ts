@@ -43,4 +43,38 @@ describe('SlackBuilderService', () => {
     expect(payload.blocks[0]?.type).toBe('header');
     expect(payload.attachments[0]?.color).toBe('#06b6d4');
   });
+
+  it('should build a valid git push payload', () => {
+    const payload = service.buildGitPayload('C0CFRUJUCSE', {
+      project: 'wonderlab',
+      eventType: 'push',
+      actor: 'thanhba0505',
+      refName: 'develop',
+      headCommit: '14be73785c05a01665b7f80b821c4ec77bc2f1f3',
+      commitCount: '2',
+      commitLines: ['• 14be737: feat: add feature', '• 28ac912: fix: bug'],
+    });
+
+    expect(payload.channel).toBe('C0CFRUJUCSE');
+    expect(payload.blocks[0]?.type).toBe('header');
+    expect(payload.attachments[0]?.color).toBe('#0284c7');
+  });
+
+  it('should build a valid git PR payload', () => {
+    const payload = service.buildGitPayload('C0CFRUJUCSE', {
+      project: 'wonderlab',
+      eventType: 'pull_request',
+      actor: 'thanhba0505',
+      prNumber: 42,
+      prTitle: 'feat: new simulation',
+      prAction: 'closed',
+      prMerged: true,
+      prHeadRef: 'feat/new-sim',
+      prBaseRef: 'develop',
+    });
+
+    expect(payload.channel).toBe('C0CFRUJUCSE');
+    expect(payload.blocks[0]?.type).toBe('header');
+    expect(payload.attachments[0]?.color).toBe('#8b5cf6');
+  });
 });
