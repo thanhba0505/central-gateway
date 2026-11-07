@@ -33,10 +33,10 @@ export class NotificationsService {
     // Default Fallback mapping
     const fallback: Record<string, string> = {
       deploy: 'C0CGL8EHU9E', // #deployments
-      ci: 'C0CGL8EBFT2',     // #ci-cd
-      git: 'C0CFRUJUCSE',    // #git-activity
+      ci: 'C0CGL8EBFT2', // #ci-cd
+      git: 'C0CFRUJUCSE', // #git-activity
       feedback: 'C0CFAFQH739', // #wonderlab-feedback
-      comment: 'C0CFAFQRU2K',  // #wonderlab-comments
+      comment: 'C0CFAFQRU2K', // #wonderlab-comments
     };
 
     const target = fallback[eventType];
@@ -46,7 +46,11 @@ export class NotificationsService {
     return target;
   }
 
-  private async sendSlackApi(payload: Record<string, unknown>, projectId?: string, eventType?: string) {
+  private async sendSlackApi(
+    payload: Record<string, unknown>,
+    projectId?: string,
+    eventType?: string,
+  ) {
     if (!this.token) {
       this.logger.warn('SLACK_BOT_TOKEN not configured. Skipped dispatch.');
       return { success: false, error: 'TOKEN_NOT_CONFIGURED' };

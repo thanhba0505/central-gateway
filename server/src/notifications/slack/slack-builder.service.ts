@@ -172,9 +172,14 @@ export class SlackBuilderService {
             {
               type: 'section',
               fields: [
-                { type: 'mrkdwn', text: `*${isComment ? 'Simulation' : 'Topic'}:*\n\`${dto.title}\`` },
+                {
+                  type: 'mrkdwn',
+                  text: `*${isComment ? 'Simulation' : 'Topic'}:*\n\`${dto.title}\``,
+                },
                 { type: 'mrkdwn', text: `*Author:*\n\`${dto.author}\`` },
-                ...(dto.category ? [{ type: 'mrkdwn', text: `*Category:*\n\`${dto.category}\`` }] : []),
+                ...(dto.category
+                  ? [{ type: 'mrkdwn', text: `*Category:*\n\`${dto.category}\`` }]
+                  : []),
                 { type: 'mrkdwn', text: `*Source:*\n\`${dto.project} Community\`` },
               ],
             },

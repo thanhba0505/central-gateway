@@ -33,7 +33,8 @@ export default function HomePage() {
             Ecosystem Platform Hub
           </h1>
           <p className="mt-2 text-sm text-slate-400">
-            Real-time notification routing, multi-project channel mapping, and shared infrastructure control.
+            Real-time notification routing, multi-project channel mapping, and shared infrastructure
+            control.
           </p>
         </div>
 
@@ -52,7 +53,9 @@ export default function HomePage() {
 
           <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-sm">
             <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-medium uppercase tracking-wider">Connected Projects</span>
+              <span className="text-xs font-medium uppercase tracking-wider">
+                Connected Projects
+              </span>
               <Terminal className="h-4 w-4 text-blue-400" />
             </div>
             <p className="mt-3 font-mono text-2xl font-bold text-white">1 Project</p>

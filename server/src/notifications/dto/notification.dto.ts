@@ -99,7 +99,7 @@ export class SendCommunityNotificationDto {
   @IsIn(['feedback', 'comment'])
   type!: 'feedback' | 'comment';
 
-  @ApiProperty({ example: 'Schrödinger\'s Cat' })
+  @ApiProperty({ example: "Schrödinger's Cat" })
   @IsString()
   @IsNotEmpty()
   title!: string;
