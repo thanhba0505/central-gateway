@@ -16,9 +16,15 @@ async function bootstrap() {
     }),
   );
 
+  const defaultOrigins = [
+    'http://localhost:5100',
+    'http://localhost:3000',
+    'https://central-gateway-client.onrender.com',
+    'https://wonderlab.io.vn',
+  ];
   const corsOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim())
-    : ['http://localhost:5100'];
+    : defaultOrigins;
 
   app.enableCors({
     origin: corsOrigins,

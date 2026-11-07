@@ -31,4 +31,16 @@ describe('SlackBuilderService', () => {
     expect(payload.blocks[0]?.type).toBe('header');
     expect(payload.attachments[0]?.color).toBe('#10b981');
   });
+
+  it('should build a valid test payload for gateway sandbox', () => {
+    const payload = service.buildTestPayload('C0CGL8EBFT2', {
+      project: 'wonderlab',
+      eventType: 'ci',
+      message: 'Hello from sandbox',
+    });
+
+    expect(payload.channel).toBe('C0CGL8EBFT2');
+    expect(payload.blocks[0]?.type).toBe('header');
+    expect(payload.attachments[0]?.color).toBe('#06b6d4');
+  });
 });

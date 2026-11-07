@@ -5,6 +5,7 @@ import {
   SendDeployNotificationDto,
   SendCiNotificationDto,
   SendCommunityNotificationDto,
+  SendTestNotificationDto,
 } from './dto/notification.dto';
 import { ApiKeyGuard } from '../auth/api-key.guard';
 
@@ -34,5 +35,12 @@ export class NotificationsController {
   @ApiResponse({ status: 200, description: 'Notification sent successfully' })
   async notifyCommunity(@Body() dto: SendCommunityNotificationDto) {
     return this.notificationsService.sendCommunityNotification(dto);
+  }
+
+  @Post('test')
+  @ApiOperation({ summary: 'Dispatch test notification from Gateway Sandbox' })
+  @ApiResponse({ status: 200, description: 'Test notification sent successfully' })
+  async notifyTest(@Body() dto: SendTestNotificationDto) {
+    return this.notificationsService.sendTestNotification(dto);
   }
 }

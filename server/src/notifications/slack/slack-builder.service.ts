@@ -3,6 +3,7 @@ import {
   SendDeployNotificationDto,
   SendCiNotificationDto,
   SendCommunityNotificationDto,
+  SendTestNotificationDto,
 } from '../dto/notification.dto';
 
 @Injectable()
@@ -214,6 +215,66 @@ export class SlackBuilderService {
                       },
                     ]
                   : []),
+              ],
+            },
+          ],
+        },
+      ],
+    };
+  }
+
+  buildTestPayload(channelId: string, dto: SendTestNotificationDto) {
+    const timestamp = new Date().toISOString();
+    return {
+      channel: channelId,
+      blocks: [
+        {
+          type: 'header',
+          text: {
+            type: 'plain_text',
+            text: `🧪 [${dto.project.toUpperCase()}] Central Gateway Test Dispatch`,
+            emoji: true,
+          },
+        },
+      ],
+      attachments: [
+        {
+          color: '#06b6d4',
+          blocks: [
+            {
+              type: 'section',
+              fields: [
+                { type: 'mrkdwn', text: `*Project:*\n\`${dto.project}\`` },
+                { type: 'mrkdwn', text: `*Event Scope:*\n\`${dto.eventType || 'test'}\`` },
+                { type: 'mrkdwn', text: `*Target Channel:*\n\`${channelId}\`` },
+                { type: 'mrkdwn', text: '*Source:*\n`Gateway Control Plane`' },
+              ],
+            },
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `*Message Content:*\n\`\`\`\n${dto.message}\n\`\`\``,
+              },
+            },
+            {
+              type: 'context',
+              elements: [
+                {
+                  type: 'mrkdwn',
+                  text: `⏱ Dispatched at: \`${timestamp}\` | Gateway System Sandbox`,
+                },
+              ],
+            },
+            {
+              type: 'actions',
+              elements: [
+                {
+                  type: 'button',
+                  text: { type: 'plain_text', text: '⚡ Open Control Plane' },
+                  url: 'https://central-gateway-client.onrender.com',
+                  style: 'primary',
+                },
               ],
             },
           ],

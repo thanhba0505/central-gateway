@@ -129,3 +129,25 @@ export class SendCommunityNotificationDto {
   @IsOptional()
   adminUrl?: string;
 }
+
+export class SendTestNotificationDto {
+  @ApiProperty({ example: 'wonderlab' })
+  @IsString()
+  @IsNotEmpty()
+  project!: string;
+
+  @ApiPropertyOptional({ example: 'ci' })
+  @IsOptional()
+  @IsString()
+  eventType?: string;
+
+  @ApiPropertyOptional({ example: 'C0CGL8EBFT2' })
+  @IsOptional()
+  @IsString()
+  channelId?: string;
+
+  @ApiProperty({ example: 'This is a test notification from Central Gateway Console.' })
+  @IsString()
+  @IsNotEmpty()
+  message!: string;
+}
