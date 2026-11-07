@@ -115,6 +115,10 @@ jobs:
           REPO="${{ github.repository }}"
           RUN_URL="https://github.com/$REPO/actions/runs/${{ github.run_id }}"
 
+          Q_UP=$(echo "$QUALITY_STATUS" | tr "[:lower:]" "[:upper:]")
+          U_UP=$(echo "$UNIT_STATUS" | tr "[:lower:]" "[:upper:]")
+          B_UP=$(echo "$BUILD_STATUS" | tr "[:lower:]" "[:upper:]")
+
           curl -s -X POST "https://central-gateway-server.onrender.com/api/v1/notifications/slack/ci" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $GATEWAY_SECRET_KEY" \
@@ -125,9 +129,9 @@ jobs:
               "commit": "'"$COMMIT"'",
               "trigger": "'"$EVENT"' by @"'"$AUTHOR"'",
               "pipeline": {
-                "Quality & Types": "'"${QUALITY_STATUS^^}"'",
-                "Unit Tests": "'"${UNIT_STATUS^^}"'",
-                "Production Build": "'"${BUILD_STATUS^^}"'"
+                "Quality & Types": "'"$Q_UP"'",
+                "Unit Tests": "'"$U_UP"'",
+                "Production Build": "'"$B_UP"'"
               },
               "runUrl": "'"$RUN_URL"'"
             }' || echo "CI notification skipped or failed"
