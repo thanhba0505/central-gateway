@@ -11,7 +11,7 @@ To create or update the Slack application, use the following App Manifest in the
 {
   "display_information": {
     "name": "Central Gateway",
-    "description": "Centralized Notification Gateway for Wonderlab & Microservices",
+    "description": "Centralized Notification Gateway for Distributed Microservices",
     "background_color": "#0284c7"
   },
   "features": {

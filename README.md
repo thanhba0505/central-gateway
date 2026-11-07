@@ -9,7 +9,7 @@
 [![Swagger OpenAPI](https://img.shields.io/badge/Docs-Swagger%20OpenAPI-85ea2d?logo=swagger)](https://central-gateway-server.onrender.com/api/docs)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-**Centralized notification gateway and cloud infrastructure control plane for Wonderlab & microservices.**
+**Centralized notification gateway and cloud infrastructure control plane for distributed applications & microservices.**
 
 [Control Plane](https://central-gateway-client.onrender.com) • [API Swagger](https://central-gateway-server.onrender.com/api/docs) • [Architecture Guide](docs/architecture.md) • [Slack Integration](docs/slack-integration.md)
 
@@ -19,10 +19,10 @@
 
 ## 📌 Project Overview
 
-**Central Gateway** is an enterprise-grade notification ingestion and dispatch platform. It decouples upstream applications (such as [Wonderlab](https://github.com/thanhba0505/Wonderlab), GitHub Actions workflows, and cron workers) from third-party communication vendor SDKs, credentials, and webhook topologies.
+**Central Gateway** is an enterprise-grade notification ingestion, formatting, and dispatch platform. It decouples distributed services, CI/CD pipelines, and microservices from third-party communication vendor SDKs, authentication credentials, and webhook topologies.
 
 ### Core Capabilities:
-- **Intelligent Routing**: Dynamically dispatches events to designated Slack channels based on project slug (`wonderlab`, `central-gateway`) and event scope (`ci`, `deploy`, `git`, `feedback`, `comment`).
+- **Intelligent Multi-Project Routing**: Dynamically dispatches events to designated Slack channels based on project slug and event scope (`ci`, `deploy`, `git`, `feedback`, `comment`).
 - **Interactive Control Plane**: Real-time web dashboard providing delivery success rates, searchable audit trail logs, and a sandbox simulator.
 - **Unified Design System**: Standardized, high-clarity notification cards formatted with Slack Block Kit.
 

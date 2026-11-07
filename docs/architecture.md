@@ -7,7 +7,7 @@ Central Gateway serves as the centralized communications broker across the Thanh
 ```mermaid
 graph TD
     subgraph Clients ["Clients & Producers"]
-        A["Wonderlab Frontend / Backend"]
+        A["Client Applications & Microservices"]
         B["GitHub Actions CI/CD"]
         C["Dependabot Security Updates"]
         D["Cron Workers & Monitoring"]
@@ -114,7 +114,7 @@ model DispatchLog {
 
 2. **Zero Secret Leakage**:
    - `SLACK_BOT_TOKEN`, `DATABASE_URL`, and internal Render Service IDs are strictly isolated to Central Gateway environment variables.
-   - Client projects like Wonderlab contain zero direct Slack credentials.
+   - Connected microservices and upstream repositories contain zero direct Slack credentials.
 
 3. **CORS Restrictions**:
    - Configured via `CORS_ORIGINS` in `server/src/main.ts` with explicit domain whitelisting (`localhost:5000`, `localhost:5100`, `https://central-gateway-client.onrender.com`).
