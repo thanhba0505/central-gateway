@@ -17,6 +17,7 @@ on:
 
 permissions:
   contents: write
+  deployments: write
 
 concurrency:
   group: deploy-production
@@ -178,3 +179,14 @@ jobs:
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $GATEWAY_SECRET_KEY" \
             -d "$PAYLOAD" || echo "Deployment finished notification skipped or failed"
+
+      - name: Record GitHub Deployment Environment
+        if: ${{ job.status == 'success' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DEPLOY_ID=$(gh api -X POST /repos/${{ github.repository }}/deployments \
+            --input - <<< '{"ref":"main","environment":"production","description":"Production '${{ steps.targets.outputs.version }}' on Render","auto_merge":false,"required_contexts":[]}' \
+            --jq '.id')
+          gh api -X POST /repos/${{ github.repository }}/deployments/$DEPLOY_ID/statuses \
+            --input - <<< '{"state":"success","environment_url":"https://central-gateway-client.onrender.com","log_url":"https://dashboard.render.com","description":"Production services healthy and live on Render"}' || true
