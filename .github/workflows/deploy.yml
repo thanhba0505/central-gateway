@@ -1,0 +1,50 @@
+name: 🚀 Deploy Production Services
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-central-gateway
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: 🚀 Deploy Production Services
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Trigger Server Deploy Hook (Render)
+        env:
+          RENDER_SERVER_DEPLOY_HOOK: ${{ secrets.RENDER_SERVER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$RENDER_SERVER_DEPLOY_HOOK" ]; then
+            echo "::warning::RENDER_SERVER_DEPLOY_HOOK is not configured in Repository Secrets."
+            exit 0
+          fi
+          echo "Triggering central-gateway-server deploy hook on Render..."
+          curl -s -X POST "$RENDER_SERVER_DEPLOY_HOOK"
+
+      - name: Trigger Client Deploy Hook (Render)
+        env:
+          RENDER_CLIENT_DEPLOY_HOOK: ${{ secrets.RENDER_CLIENT_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$RENDER_CLIENT_DEPLOY_HOOK" ]; then
+            echo "::warning::RENDER_CLIENT_DEPLOY_HOOK is not configured in Repository Secrets."
+            exit 0
+          fi
+          echo "Triggering central-gateway-client deploy hook on Render..."
+          curl -s -X POST "$RENDER_CLIENT_DEPLOY_HOOK"

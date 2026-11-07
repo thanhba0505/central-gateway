@@ -1,0 +1,27 @@
+{
+  "name": "central-gateway",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Central API & Notification Gateway for the ThanhBa ecosystem",
+  "scripts": {
+    "dev": "concurrently -k -p \"[{name}]\" -n \"CLIENT,SERVER\" -c \"cyan.bold,magenta.bold\" \"pnpm --filter central-gateway-client dev\" \"pnpm --filter central-gateway-server start:dev\"",
+    "dev:client": "pnpm --filter central-gateway-client dev",
+    "dev:server": "pnpm --filter central-gateway-server start:dev",
+    "build": "pnpm --filter central-gateway-client build && pnpm --filter central-gateway-server build",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2"
+  },
+  "packageManager": "pnpm@12.11.2",
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

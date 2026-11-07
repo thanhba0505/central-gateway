@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: central-gateway-client
+    runtime: node
+    plan: free
+    region: oregon
+    autoDeploy: false
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter central-gateway-client build
+    startCommand: pnpm --filter central-gateway-client start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: NEXT_PUBLIC_APP_NAME
+        value: Central Gateway
+      - key: NEXT_PUBLIC_API_BASE_URL
+        sync: false
