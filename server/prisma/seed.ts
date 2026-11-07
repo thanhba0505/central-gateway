@@ -50,6 +50,48 @@ async function main() {
     });
   }
 
+  // Create Central Gateway project
+  const centralGateway = await prisma.project.upsert({
+    where: { slug: 'central-gateway' },
+    update: { name: 'Central Gateway' },
+    create: {
+      slug: 'central-gateway',
+      name: 'Central Gateway',
+      description: 'Centralized API & Notification Gateway for the ThanhBa ecosystem',
+    },
+  });
+
+  console.log('Created or updated project:', centralGateway.name);
+
+  const gatewayChannels = [
+    { eventType: 'deploy', channelId: 'C0CGL8EHU9E', channelName: '#deployments' },
+    { eventType: 'ci', channelId: 'C0CGL8EBFT2', channelName: '#ci-cd' },
+    { eventType: 'git', channelId: 'C0CFRUJUCSE', channelName: '#git-activity' },
+  ];
+
+  for (const ch of gatewayChannels) {
+    await prisma.channelMapping.upsert({
+      where: {
+        projectId_eventType_provider: {
+          projectId: centralGateway.id,
+          eventType: ch.eventType,
+          provider: 'slack',
+        },
+      },
+      update: {
+        channelId: ch.channelId,
+        channelName: ch.channelName,
+      },
+      create: {
+        projectId: centralGateway.id,
+        eventType: ch.eventType,
+        channelId: ch.channelId,
+        channelName: ch.channelName,
+        provider: 'slack',
+      },
+    });
+  }
+
   console.log('Successfully seeded channel mappings.');
 }
 

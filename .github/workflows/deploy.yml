@@ -4,12 +4,22 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      service:
+        description: 'Target service to deploy (EMERGENCY ONLY - Prefer publishing tag vX.Y.Z)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - client
+          - server
 
 permissions:
   contents: write
 
 concurrency:
-  group: deploy-central-gateway
+  group: deploy-production
   cancel-in-progress: false
 
 jobs:
@@ -18,33 +28,143 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@v4
         with:
           node-version: 24
 
-      - name: Trigger Server Deploy Hook (Render)
-        env:
-          RENDER_SERVER_DEPLOY_HOOK: ${{ secrets.RENDER_SERVER_DEPLOY_HOOK }}
+      - name: Merge develop into main and Sync Release Version
+        if: ${{ github.event_name == 'release' || startsWith(github.ref, 'refs/tags/v') }}
         run: |
-          if [ -z "$RENDER_SERVER_DEPLOY_HOOK" ]; then
-            echo "::warning::RENDER_SERVER_DEPLOY_HOOK is not configured in Repository Secrets."
-            exit 0
-          fi
-          echo "Triggering central-gateway-server deploy hook on Render..."
-          curl -s -X POST "$RENDER_SERVER_DEPLOY_HOOK"
+          RELEASE_TAG="${{ github.event.release.tag_name || github.ref_name }}"
+          chmod +x scripts/sync-release-version.sh
+          ./scripts/sync-release-version.sh "$RELEASE_TAG"
 
-      - name: Trigger Client Deploy Hook (Render)
-        env:
-          RENDER_CLIENT_DEPLOY_HOOK: ${{ secrets.RENDER_CLIENT_DEPLOY_HOOK }}
+      - name: Determine Target Deployment Parameters
+        id: targets
         run: |
-          if [ -z "$RENDER_CLIENT_DEPLOY_HOOK" ]; then
-            echo "::warning::RENDER_CLIENT_DEPLOY_HOOK is not configured in Repository Secrets."
-            exit 0
+          SERVICE="${{ inputs.service || 'all' }}"
+          if [[ "${{ github.ref }}" =~ ^refs/tags/v([0-9]+\.[0-9]+\.[0-9]+.*) ]]; then
+            TARGET_VERSION="${BASH_REMATCH[1]}"
+          elif [ -n "${{ github.event.release.tag_name }}" ]; then
+            TAG="${{ github.event.release.tag_name }}"
+            TARGET_VERSION="${TAG#v}"
+          else
+            TARGET_VERSION=$(node -p "require('./package.json').version")
           fi
-          echo "Triggering central-gateway-client deploy hook on Render..."
-          curl -s -X POST "$RENDER_CLIENT_DEPLOY_HOOK"
+          RELEASE_COMMIT=$(git rev-parse origin/main 2>/dev/null || git rev-parse HEAD)
+          echo "service=$SERVICE" >> "$GITHUB_OUTPUT"
+          echo "version=$TARGET_VERSION" >> "$GITHUB_OUTPUT"
+          echo "commit=$RELEASE_COMMIT" >> "$GITHUB_OUTPUT"
+
+      - name: Notify Slack Deployment Started (#deployments)
+        env:
+          GATEWAY_SECRET_KEY: ${{ secrets.GATEWAY_SECRET_KEY }}
+        run: |
+          VERSION="${{ steps.targets.outputs.version }}"
+          COMMIT="${{ steps.targets.outputs.commit }}"
+          SERVICE="${{ steps.targets.outputs.service }}"
+          AUTHOR="${{ github.actor }}"
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          curl -s -X POST "https://central-gateway-server.onrender.com/api/v1/notifications/slack/deploy" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $GATEWAY_SECRET_KEY" \
+            -d '{
+              "project": "central-gateway",
+              "status": "STARTED",
+              "version": "'"$VERSION"'",
+              "commit": "'"$COMMIT"'",
+              "target": "Production ('"$SERVICE"')",
+              "actor": "'"$AUTHOR"'",
+              "runUrl": "'"$RUN_URL"'"
+            }' || echo "Deployment started notification skipped or failed"
+
+      - name: Trigger Server Deploy (Render API)
+        if: ${{ steps.targets.outputs.service == 'all' || steps.targets.outputs.service == 'server' }}
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVER_SERVICE_ID: ${{ secrets.RENDER_SERVER_SERVICE_ID }}
+        run: |
+          if [ -z "$RENDER_API_KEY" ] || [ -z "$RENDER_SERVER_SERVICE_ID" ]; then
+            echo "::error::RENDER_API_KEY or RENDER_SERVER_SERVICE_ID not configured in Secrets."
+            exit 1
+          fi
+          echo "Triggering central-gateway-server deploy via Render API..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            "https://api.render.com/v1/services/$RENDER_SERVER_SERVICE_ID/deploys")
+          echo "Render Server Deploy API response: HTTP $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
+            echo "::error::Failed to trigger central-gateway-server deploy (HTTP $HTTP_STATUS)"
+            exit 1
+          fi
+
+      - name: Trigger Client Deploy (Render API)
+        if: ${{ steps.targets.outputs.service == 'all' || steps.targets.outputs.service == 'client' }}
+        env:
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_CLIENT_SERVICE_ID: ${{ secrets.RENDER_CLIENT_SERVICE_ID }}
+        run: |
+          if [ -z "$RENDER_API_KEY" ] || [ -z "$RENDER_CLIENT_SERVICE_ID" ]; then
+            echo "::error::RENDER_API_KEY or RENDER_CLIENT_SERVICE_ID not configured in Secrets."
+            exit 1
+          fi
+          echo "Triggering central-gateway-client deploy via Render API..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            "https://api.render.com/v1/services/$RENDER_CLIENT_SERVICE_ID/deploys")
+          echo "Render Client Deploy API response: HTTP $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
+            echo "::error::Failed to trigger central-gateway-client deploy (HTTP $HTTP_STATUS)"
+            exit 1
+          fi
+
+      - name: Monitor & Verify Live Deployment Rollout
+        run: |
+          chmod +x scripts/verify-deployment.sh
+          ./scripts/verify-deployment.sh \
+            --service "${{ steps.targets.outputs.service }}" \
+            --version "${{ steps.targets.outputs.version }}" \
+            --commit "${{ steps.targets.outputs.commit }}" \
+            --timeout 600 \
+            --interval 10 \
+            --initial-delay 15
+
+      - name: Notify Slack Deployment Result (#deployments)
+        if: always()
+        env:
+          GATEWAY_SECRET_KEY: ${{ secrets.GATEWAY_SECRET_KEY }}
+        run: |
+          STATUS="FAIL"
+          if [ "${{ job.status }}" = "success" ]; then
+            STATUS="SUCCESS"
+          fi
+
+          VERSION="${{ steps.targets.outputs.version }}"
+          COMMIT="${{ steps.targets.outputs.commit }}"
+          SERVICE="${{ steps.targets.outputs.service }}"
+          AUTHOR="${{ github.actor }}"
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          curl -s -X POST "https://central-gateway-server.onrender.com/api/v1/notifications/slack/deploy" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $GATEWAY_SECRET_KEY" \
+            -d '{
+              "project": "central-gateway",
+              "status": "'"$STATUS"'",
+              "version": "'"$VERSION"'",
+              "commit": "'"$COMMIT"'",
+              "target": "Production ('"$SERVICE"')",
+              "actor": "'"$AUTHOR"'",
+              "appUrl": "https://central-gateway-client.onrender.com",
+              "healthUrl": "https://central-gateway-server.onrender.com/api/v1/health",
+              "runUrl": "'"$RUN_URL"'"
+            }' || echo "Deployment finished notification skipped or failed"
