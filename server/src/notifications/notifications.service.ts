@@ -38,6 +38,7 @@ export class NotificationsService {
       git: 'C0CFRUJUCSE', // #git-activity
       feedback: 'C0CFAFQH739', // #wonderlab-feedback
       comment: 'C0CFAFQRU2K', // #wonderlab-comments
+      test: 'C0CGL8EBFT2', // #ci-cd (sandbox fallback)
     };
 
     const target = fallback[eventType];
