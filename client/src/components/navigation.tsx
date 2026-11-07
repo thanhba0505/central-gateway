@@ -55,7 +55,7 @@ export function Navigation() {
                     Central Gateway
                   </span>
                   <span className="rounded border border-cyan-500/30 bg-cyan-500/10 px-1.5 py-0.2 font-mono text-[11px] text-cyan-400">
-                    v0.1.0
+                    v{process.env.NEXT_PUBLIC_APP_VERSION ?? '0.2.1'}
                   </span>
                 </div>
                 <span className="text-[11px] font-mono text-slate-500">Platform Control Plane</span>

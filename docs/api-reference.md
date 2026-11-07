@@ -3,6 +3,7 @@
 Interactive OpenAPI documentation is live at [central-gateway-server.onrender.com/api/docs](https://central-gateway-server.onrender.com/api/docs).
 
 All requests to `/api/v1/notifications/*` must include:
+
 ```http
 Authorization: Bearer <GATEWAY_SECRET_KEY>
 Content-Type: application/json
@@ -13,6 +14,7 @@ Content-Type: application/json
 ## 1. Notification Endpoints
 
 ### 1.1 Deploy Notification
+
 - **Endpoint**: `POST /api/v1/notifications/slack/deploy`
 - **Description**: Dispatches a production deployment status card to `#deployments`.
 - **Payload Schema**:
@@ -33,6 +35,7 @@ Content-Type: application/json
 ---
 
 ### 1.2 CI Pipeline Notification
+
 - **Endpoint**: `POST /api/v1/notifications/slack/ci`
 - **Description**: Dispatches a CI quality verification result card to `#ci-cd`.
 - **Payload Schema**:
@@ -51,6 +54,7 @@ Content-Type: application/json
 ---
 
 ### 1.3 Git Activity Notification
+
 - **Endpoint**: `POST /api/v1/notifications/slack/git`
 - **Description**: Dispatches commits, branches, and PR activities to `#git-activity`.
 - **Payload Schema**:
@@ -78,6 +82,7 @@ Content-Type: application/json
 ---
 
 ### 1.4 Community Feedback & Moderation
+
 - **Endpoint**: `POST /api/v1/notifications/slack/community`
 - **Description**: Dispatches user simulation proposals or comments to `#wonderlab-feedback` / `#wonderlab-comments`.
 - **Payload Schema**:
@@ -97,6 +102,7 @@ Content-Type: application/json
 ---
 
 ### 1.5 System Test Dispatch
+
 - **Endpoint**: `POST /api/v1/notifications/slack/test`
 - **Description**: Test dispatch for sandbox simulation.
 - **Payload Schema**:
@@ -113,10 +119,10 @@ Content-Type: application/json
 
 ## 2. Management & Observability Endpoints
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/v1/health` | Health probe (Liveness & Readiness) |
-| `GET` | `/api/v1/projects` | List all registered projects and channel mappings |
-| `POST` | `/api/v1/projects` | Register a new project |
-| `PUT` | `/api/v1/projects/:id/channels` | Update project channel mappings |
-| `GET` | `/api/v1/logs` | Query dispatch audit trail with pagination and stats |
+| Method | Endpoint                        | Description                                          |
+| :----- | :------------------------------ | :--------------------------------------------------- |
+| `GET`  | `/api/v1/health`                | Health probe (Liveness & Readiness)                  |
+| `GET`  | `/api/v1/projects`              | List all registered projects and channel mappings    |
+| `POST` | `/api/v1/projects`              | Register a new project                               |
+| `PUT`  | `/api/v1/projects/:id/channels` | Update project channel mappings                      |
+| `GET`  | `/api/v1/logs`                  | Query dispatch audit trail with pagination and stats |
