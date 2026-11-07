@@ -72,18 +72,23 @@ jobs:
           AUTHOR="${{ github.actor }}"
           RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
+          PAYLOAD=$(cat <<EOF
+          {
+            "project": "central-gateway",
+            "status": "STARTED",
+            "version": "$VERSION",
+            "commit": "$COMMIT",
+            "target": "Production ($SERVICE)",
+            "actor": "$AUTHOR",
+            "runUrl": "$RUN_URL"
+          }
+          EOF
+          )
+
           curl -s -X POST "https://central-gateway-server.onrender.com/api/v1/notifications/slack/deploy" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $GATEWAY_SECRET_KEY" \
-            -d '{
-              "project": "central-gateway",
-              "status": "STARTED",
-              "version": "'"$VERSION"'",
-              "commit": "'"$COMMIT"'",
-              "target": "Production ('"$SERVICE"')",
-              "actor": "'"$AUTHOR"'",
-              "runUrl": "'"$RUN_URL"'"
-            }' || echo "Deployment started notification skipped or failed"
+            -d "$PAYLOAD" || echo "Deployment started notification skipped or failed"
 
       - name: Trigger Server Deploy (Render API)
         if: ${{ steps.targets.outputs.service == 'all' || steps.targets.outputs.service == 'server' }}
@@ -154,17 +159,22 @@ jobs:
           AUTHOR="${{ github.actor }}"
           RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
+          PAYLOAD=$(cat <<EOF
+          {
+            "project": "central-gateway",
+            "status": "$STATUS",
+            "version": "$VERSION",
+            "commit": "$COMMIT",
+            "target": "Production ($SERVICE)",
+            "actor": "$AUTHOR",
+            "appUrl": "https://central-gateway-client.onrender.com",
+            "healthUrl": "https://central-gateway-server.onrender.com/api/v1/health",
+            "runUrl": "$RUN_URL"
+          }
+          EOF
+          )
+
           curl -s -X POST "https://central-gateway-server.onrender.com/api/v1/notifications/slack/deploy" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $GATEWAY_SECRET_KEY" \
-            -d '{
-              "project": "central-gateway",
-              "status": "'"$STATUS"'",
-              "version": "'"$VERSION"'",
-              "commit": "'"$COMMIT"'",
-              "target": "Production ('"$SERVICE"')",
-              "actor": "'"$AUTHOR"'",
-              "appUrl": "https://central-gateway-client.onrender.com",
-              "healthUrl": "https://central-gateway-server.onrender.com/api/v1/health",
-              "runUrl": "'"$RUN_URL"'"
-            }' || echo "Deployment finished notification skipped or failed"
+            -d "$PAYLOAD" || echo "Deployment finished notification skipped or failed"
