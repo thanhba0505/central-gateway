@@ -130,8 +130,6 @@ async function main() {
           ? 'https://wonderlab-server.onrender.com'
           : 'http://localhost:4201',
       apiPrefix: '/api/v1',
-      corsOrigin:
-        process.env.NODE_ENV === 'production' ? 'https://wonderlab.io.vn' : 'http://localhost:4200',
       apiKey: 'gw_to_wl_s2s_secret_2026',
       incomingSecret: 'wl_to_gw_s2s_secret_2026',
       isActive: true,
@@ -146,8 +144,6 @@ async function main() {
           ? 'https://wonderlab-server.onrender.com'
           : 'http://localhost:4201',
       apiPrefix: '/api/v1',
-      corsOrigin:
-        process.env.NODE_ENV === 'production' ? 'https://wonderlab.io.vn' : 'http://localhost:4200',
       apiKey: 'gw_to_wl_s2s_secret_2026',
       incomingSecret: 'wl_to_gw_s2s_secret_2026',
       isActive: true,

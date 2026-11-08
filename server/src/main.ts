@@ -7,7 +7,6 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
-import { PrismaService } from './prisma/prisma.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -34,27 +33,11 @@ async function bootstrap() {
     'https://www.wonderlab.io.vn',
   ];
 
-  let dynamicOrigins: string[] = [];
-  try {
-    const prisma = app.get(PrismaService);
-    const activeConnections = await prisma.serviceConnection.findMany({
-      where: { isActive: true, corsOrigin: { not: null } },
-      select: { corsOrigin: true },
-    });
-    dynamicOrigins = activeConnections
-      .map((c) => c.corsOrigin)
-      .filter((origin): origin is string => Boolean(origin));
-  } catch {
-    // Fallback gracefully if database is unreachable during pre-compilation
-  }
-
   const configuredOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim())
     : [];
 
-  const corsOrigins = Array.from(
-    new Set([...defaultOrigins, ...dynamicOrigins, ...configuredOrigins]),
-  );
+  const corsOrigins = Array.from(new Set([...defaultOrigins, ...configuredOrigins]));
 
   app.enableCors({
     origin: corsOrigins,
