@@ -20,15 +20,15 @@ export function JsonViewer({ data, maxHeight = 'max-h-96' }: JsonViewerProps) {
   };
 
   return (
-    <div className="relative rounded-lg border border-slate-800 bg-slate-950 p-3 font-mono text-xs">
+    <div className="relative rounded-2xl border border-white/15 bg-[#140628]/80 p-4 font-mono text-xs backdrop-blur-md">
       <button
         onClick={handleCopy}
-        className="absolute right-2 top-2 flex items-center gap-1 rounded border border-slate-800 bg-slate-900/90 px-2 py-1 text-[11px] text-slate-400 hover:border-slate-700 hover:text-white transition-colors"
+        className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] text-violet-200 transition-colors hover:border-white/40 hover:bg-white/20 hover:text-white"
       >
         {copied ? (
           <>
             <Check className="h-3 w-3 text-emerald-400" />
-            <span className="text-emerald-400">Copied</span>
+            <span className="text-emerald-300">Copied</span>
           </>
         ) : (
           <>
@@ -37,7 +37,7 @@ export function JsonViewer({ data, maxHeight = 'max-h-96' }: JsonViewerProps) {
           </>
         )}
       </button>
-      <pre className={`overflow-x-auto text-slate-300 font-mono ${maxHeight}`}>{jsonString}</pre>
+      <pre className={`overflow-x-auto text-violet-100 font-mono ${maxHeight}`}>{jsonString}</pre>
     </div>
   );
 }

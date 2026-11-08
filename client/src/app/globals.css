@@ -1,13 +1,84 @@
 @import 'tailwindcss';
 @source "../**/*.{js,ts,jsx,tsx,mdx}";
 
+@theme {
+  --color-cosmic-950: #0e041a;
+  --color-cosmic-900: #160829;
+  --color-cosmic-800: #250d42;
+  --color-cosmic-700: #3a1366;
+  --color-cosmic-600: #55198e;
+  --color-cosmic-500: #7425ba;
+  --color-cosmic-400: #9642de;
+}
+
 :root {
-  --background: #090d16;
-  --foreground: #f1f5f9;
+  --background: #120524;
+  --foreground: #ffffff;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Frosted glass utilities */
+.glass-panel {
+  background-color: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 12px 40px rgba(107, 36, 155, 0.35),
+    0 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+.glass-panel-interactive {
+  background-color: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-panel-interactive:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 8px 30px rgba(140, 56, 201, 0.3);
+}
+
+.glass-pill-input {
+  background-color: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+}
+
+.glass-pill-input:focus {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 4px rgba(192, 132, 252, 0.25);
+  outline: none;
+}
+
+.glow-white-button {
+  background-color: #ffffff;
+  color: #240a45;
+  font-weight: 700;
+  border-radius: 9999px;
+  box-shadow: 0 0 24px rgba(255, 255, 255, 0.45);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glow-white-button:hover {
+  background-color: #f8f6fc;
+  box-shadow: 0 0 32px rgba(255, 255, 255, 0.65);
+  transform: translateY(-1px);
+}
+
+.glow-white-button:active {
+  transform: scale(0.98);
 }
