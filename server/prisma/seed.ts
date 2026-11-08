@@ -92,6 +92,34 @@ async function main() {
     });
   }
 
+  // Register Wonderlab OAuth Client for SSO
+  await prisma.oAuthClient.upsert({
+    where: { clientId: 'wonderlab' },
+    update: {
+      name: 'Wonderlab Platform',
+      redirectUris: [
+        'http://localhost:4100/auth/callback',
+        'http://localhost:4200/auth/callback',
+        'https://wonderlab.io.vn/auth/callback',
+        'https://www.wonderlab.io.vn/auth/callback',
+      ],
+      isActive: true,
+    },
+    create: {
+      clientId: 'wonderlab',
+      clientSecret: 'wonderlab_sso_secret',
+      name: 'Wonderlab Platform',
+      redirectUris: [
+        'http://localhost:4100/auth/callback',
+        'http://localhost:4200/auth/callback',
+        'https://wonderlab.io.vn/auth/callback',
+        'https://www.wonderlab.io.vn/auth/callback',
+      ],
+      isActive: true,
+    },
+  });
+  console.log('Seeded Wonderlab OAuth client.');
+
   console.log('Successfully seeded channel mappings.');
 }
 
