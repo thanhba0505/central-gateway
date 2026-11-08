@@ -12,6 +12,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { OAuthTokenDto } from './dto/oauth.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateUserStatusDto } from './dto/update-status.dto';
+import { S2SService } from '../s2s/s2s.service';
 
 export interface SanitizedUser {
   id: string;
@@ -20,6 +23,7 @@ export interface SanitizedUser {
   role: string;
   avatarUrl: string | null;
   isEmailVerified: boolean;
+  isActive: boolean;
   createdAt: Date;
 }
 
@@ -28,6 +32,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
+    private readonly s2sService: S2SService,
   ) {}
 
   /**
@@ -79,6 +84,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid username or password');
     }
 
+    if (!user.isActive) {
+      throw new UnauthorizedException('Account has been deactivated');
+    }
+
     return this.sanitizeUser(user);
   }
 
@@ -117,7 +126,7 @@ export class AuthService {
       include: { user: true },
     });
 
-    if (!session || session.expiresAt < new Date()) {
+    if (!session || session.expiresAt < new Date() || !session.user.isActive) {
       return null;
     }
 
@@ -250,6 +259,8 @@ export class AuthService {
       username: user.username,
       email: user.email,
       role: user.role,
+      avatarUrl: user.avatarUrl,
+      isActive: user.isActive,
       iss: 'central-gateway',
       aud: dto.client_id,
     };
@@ -264,6 +275,102 @@ export class AuthService {
     };
   }
 
+  /**
+   * Update user profile and automatically dispatch sync to connected sub-services
+   */
+  async updateProfile(userId: string, dto: UpdateProfileDto): Promise<SanitizedUser> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (dto.username && dto.username !== user.username) {
+      const existing = await this.prisma.user.findUnique({
+        where: { username: dto.username },
+      });
+      if (existing) {
+        throw new ConflictException('Username is already taken');
+      }
+    }
+
+    if (dto.email && dto.email !== user.email) {
+      const existing = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      });
+      if (existing) {
+        throw new ConflictException('Email is already registered');
+      }
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(dto.username ? { username: dto.username } : {}),
+        ...(dto.email !== undefined ? { email: dto.email || null } : {}),
+        ...(dto.avatarUrl !== undefined ? { avatarUrl: dto.avatarUrl || null } : {}),
+      },
+    });
+
+    const sanitized = this.sanitizeUser(updated);
+
+    // Fire-and-forget sync to all active sub-services configured for user sync
+    this.s2sService
+      .dispatchUserSync({
+        id: sanitized.id,
+        username: sanitized.username,
+        email: sanitized.email,
+        avatarUrl: sanitized.avatarUrl,
+        role: sanitized.role,
+        isActive: sanitized.isActive,
+      })
+      .catch(() => {});
+
+    return sanitized;
+  }
+
+  /**
+   * Deactivate or activate user account (soft-delete / status toggle)
+   */
+  async updateUserStatus(userId: string, dto: UpdateUserStatusDto): Promise<SanitizedUser> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // If deactivating, immediately revoke all active sessions
+    if (!dto.isActive) {
+      await this.prisma.userSession.deleteMany({
+        where: { userId },
+      });
+    }
+
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data: { isActive: dto.isActive },
+    });
+
+    const sanitized = this.sanitizeUser(updated);
+
+    this.s2sService
+      .dispatchUserSync({
+        id: sanitized.id,
+        username: sanitized.username,
+        email: sanitized.email,
+        avatarUrl: sanitized.avatarUrl,
+        role: sanitized.role,
+        isActive: sanitized.isActive,
+      })
+      .catch(() => {});
+
+    return sanitized;
+  }
+
   private sanitizeUser(user: {
     id: string;
     username: string;
@@ -271,6 +378,7 @@ export class AuthService {
     role: string;
     avatarUrl: string | null;
     isEmailVerified: boolean;
+    isActive: boolean;
     createdAt: Date;
   }): SanitizedUser {
     return {
@@ -280,6 +388,7 @@ export class AuthService {
       role: user.role,
       avatarUrl: user.avatarUrl,
       isEmailVerified: user.isEmailVerified,
+      isActive: user.isActive,
       createdAt: user.createdAt,
     };
   }

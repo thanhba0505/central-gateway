@@ -120,6 +120,43 @@ async function main() {
   });
   console.log('Seeded Wonderlab OAuth client.');
 
+  // Register Wonderlab Service Connection
+  await prisma.serviceConnection.upsert({
+    where: { slug: 'wonderlab' },
+    update: {
+      name: 'Wonderlab Platform',
+      domain:
+        process.env.NODE_ENV === 'production'
+          ? 'https://wonderlab-server.onrender.com'
+          : 'http://localhost:4201',
+      apiPrefix: '/api/v1',
+      corsOrigin:
+        process.env.NODE_ENV === 'production' ? 'https://wonderlab.io.vn' : 'http://localhost:4200',
+      apiKey: 'gw_to_wl_s2s_secret_2026',
+      incomingSecret: 'wl_to_gw_s2s_secret_2026',
+      isActive: true,
+      timeoutMs: 5000,
+      metadata: { syncUser: true, healthPath: '/health' },
+    },
+    create: {
+      slug: 'wonderlab',
+      name: 'Wonderlab Platform',
+      domain:
+        process.env.NODE_ENV === 'production'
+          ? 'https://wonderlab-server.onrender.com'
+          : 'http://localhost:4201',
+      apiPrefix: '/api/v1',
+      corsOrigin:
+        process.env.NODE_ENV === 'production' ? 'https://wonderlab.io.vn' : 'http://localhost:4200',
+      apiKey: 'gw_to_wl_s2s_secret_2026',
+      incomingSecret: 'wl_to_gw_s2s_secret_2026',
+      isActive: true,
+      timeoutMs: 5000,
+      metadata: { syncUser: true, healthPath: '/health' },
+    },
+  });
+  console.log('Seeded Wonderlab Service Connection.');
+
   console.log('Successfully seeded channel mappings.');
 }
 

@@ -3,22 +3,26 @@ import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { S2SService } from '../s2s/s2s.service';
 
 describe('AuthService', () => {
   let service: AuthService;
   let prismaMock: {
-    user: { findFirst: jest.Mock; create: jest.Mock };
+    user: { findFirst: jest.Mock; findUnique: jest.Mock; create: jest.Mock; update: jest.Mock };
     userSession: { create: jest.Mock; findUnique: jest.Mock; deleteMany: jest.Mock };
     oAuthClient: { findUnique: jest.Mock; create: jest.Mock };
     authCode: { create: jest.Mock; findUnique: jest.Mock; update: jest.Mock };
   };
   let jwtMock: { sign: jest.Mock };
+  let s2sMock: { dispatchUserSync: jest.Mock };
 
   beforeEach(async () => {
     prismaMock = {
       user: {
         findFirst: jest.fn(),
+        findUnique: jest.fn(),
         create: jest.fn(),
+        update: jest.fn(),
       },
       userSession: {
         create: jest.fn(),
@@ -40,11 +44,16 @@ describe('AuthService', () => {
       sign: jest.fn().mockReturnValue('mock.jwt.token'),
     };
 
+    s2sMock = {
+      dispatchUserSync: jest.fn().mockResolvedValue([]),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
         { provide: PrismaService, useValue: prismaMock },
         { provide: JwtService, useValue: jwtMock },
+        { provide: S2SService, useValue: s2sMock },
       ],
     }).compile();
 

@@ -21,6 +21,7 @@ model User {
   isEmailVerified Boolean       @default(false) @map("is_email_verified")
   avatarUrl       String?       @map("avatar_url")
   role            Role          @default(USER)
+  isActive        Boolean       @default(true) @map("is_active")
   createdAt       DateTime      @default(now()) @map("created_at")
   updatedAt       DateTime      @updatedAt @map("updated_at")
   sessions        UserSession[]
@@ -139,4 +140,22 @@ model DispatchLog {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("dispatch_logs")
+}
+
+model ServiceConnection {
+  id             String    @id @default(uuid())
+  slug           String    @unique
+  name           String
+  domain         String
+  apiPrefix      String    @default("/api/v1") @map("api_prefix")
+  corsOrigin     String?   @map("cors_origin")
+  apiKey         String?   @map("api_key")
+  incomingSecret String?   @map("incoming_secret")
+  isActive       Boolean   @default(true) @map("is_active")
+  timeoutMs      Int       @default(5000) @map("timeout_ms")
+  metadata       Json?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@map("service_connections")
 }

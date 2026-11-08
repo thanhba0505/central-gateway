@@ -2,6 +2,8 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
+  Param,
   Body,
   Query,
   Req,
@@ -10,6 +12,7 @@ import {
   UnauthorizedException,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Request, Response } from 'express';
@@ -18,6 +21,9 @@ import { AuthService, SanitizedUser } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { OAuthAuthorizeDto, OAuthTokenDto } from './dto/oauth.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { UpdateUserStatusDto } from './dto/update-status.dto';
+import { ApiKeyGuard } from './api-key.guard';
 
 @ApiTags('Authentication & SSO IAM')
 @Controller('auth')
@@ -65,6 +71,35 @@ export class AuthController {
       return { user: null };
     }
     const user = await this.authService.validateSession(sessionToken);
+    return { user };
+  }
+
+  @Patch('profile')
+  @ApiOperation({ summary: 'Update current user profile and sync to connected services' })
+  async updateProfile(
+    @Req() req: Request,
+    @Body() dto: UpdateProfileDto,
+  ): Promise<{ user: SanitizedUser }> {
+    const sessionToken = req.cookies?.['gateway_session'];
+    if (!sessionToken) {
+      throw new UnauthorizedException('Not authenticated');
+    }
+    const current = await this.authService.validateSession(sessionToken);
+    if (!current) {
+      throw new UnauthorizedException('Session expired');
+    }
+    const user = await this.authService.updateProfile(current.id, dto);
+    return { user };
+  }
+
+  @Patch('users/:id/status')
+  @UseGuards(ApiKeyGuard)
+  @ApiOperation({ summary: 'Activate or deactivate user account (Admin / API Key only)' })
+  async updateStatus(
+    @Param('id') id: string,
+    @Body() dto: UpdateUserStatusDto,
+  ): Promise<{ user: SanitizedUser }> {
+    const user = await this.authService.updateUserStatus(id, dto);
     return { user };
   }
 
@@ -155,6 +190,7 @@ export class AuthController {
         role: decoded.role ?? 'USER',
         avatarUrl: decoded.avatarUrl ?? null,
         isEmailVerified: decoded.isEmailVerified ?? false,
+        isActive: decoded.isActive ?? true,
         createdAt: new Date(),
       };
     } catch {
