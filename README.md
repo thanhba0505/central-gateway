@@ -1,6 +1,8 @@
-# 🌐 Central Gateway
-
 <div align="center">
+
+# Central Gateway
+
+**Centralized notification gateway and cloud infrastructure control plane for distributed applications & microservices.**
 
 [![CI Pipeline](https://github.com/thanhba0505/central-gateway/actions/workflows/ci.yml/badge.svg)](https://github.com/thanhba0505/central-gateway/actions/workflows/ci.yml)
 [![Latest Release](https://img.shields.io/github/v/release/thanhba0505/central-gateway?color=0284c7&label=Release)](https://github.com/thanhba0505/central-gateway/releases)
@@ -8,8 +10,6 @@
 [![Server API](https://img.shields.io/badge/Server-API%20v1-0284c7?logo=nestjs)](https://central-gateway-server.onrender.com/api/v1)
 [![Swagger OpenAPI](https://img.shields.io/badge/Docs-Swagger%20OpenAPI-85ea2d?logo=swagger)](https://central-gateway-server.onrender.com/api/docs)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-
-**Centralized notification gateway and cloud infrastructure control plane for distributed applications & microservices.**
 
 [Control Plane](https://central-gateway-client.onrender.com) • [API Swagger](https://central-gateway-server.onrender.com/api/docs) • [Architecture Guide](docs/architecture.md) • [Slack Integration](docs/slack-integration.md)
 
