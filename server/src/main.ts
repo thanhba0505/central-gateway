@@ -1,12 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api/v1');
+
+  app.use(cookieParser());
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -18,9 +21,12 @@ async function bootstrap() {
 
   const defaultOrigins = [
     'http://localhost:5100',
+    'http://localhost:5000',
+    'http://localhost:4200',
     'http://localhost:3000',
     'https://central-gateway-client.onrender.com',
     'https://wonderlab.io.vn',
+    'https://www.wonderlab.io.vn',
   ];
   const corsOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim())
@@ -32,10 +38,13 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-    .setTitle('Central Gateway API')
-    .setDescription('Centralized notifications and platform services for the ThanhBa ecosystem')
-    .setVersion('0.1.0')
+    .setTitle('Central Gateway API & SSO IAM')
+    .setDescription(
+      'Centralized Single Sign-On IAM Hub, notifications, and platform services for the ThanhBa ecosystem',
+    )
+    .setVersion(process.env.npm_package_version || '0.2.1')
     .addBearerAuth()
+    .addCookieAuth('gateway_session')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

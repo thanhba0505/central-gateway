@@ -39,12 +39,19 @@ async function handler(request: NextRequest, context: { params: Promise<{ path: 
     const responseBody = await backendRes.text();
     const contentType = backendRes.headers.get('content-type') || 'application/json';
 
+    const resHeaders = new Headers();
+    resHeaders.set('Content-Type', contentType);
+    resHeaders.set('Cache-Control', 'no-store, max-age=0');
+
+    // Forward Set-Cookie headers for session authentication
+    const setCookie = backendRes.headers.get('set-cookie');
+    if (setCookie) {
+      resHeaders.set('Set-Cookie', setCookie);
+    }
+
     return new NextResponse(responseBody, {
       status: backendRes.status,
-      headers: {
-        'Content-Type': contentType,
-        'Cache-Control': 'no-store, max-age=0',
-      },
+      headers: resHeaders,
     });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : String(err);
