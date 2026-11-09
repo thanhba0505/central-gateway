@@ -99,6 +99,11 @@ export class S2SService {
     const results: SyncResult[] = [];
 
     for (const conn of targetConnections) {
+      // Find associated project by slug so the audit log displays the project name/slug properly
+      const project = await this.prisma.project.findUnique({
+        where: { slug: conn.slug },
+      });
+
       try {
         await this.call(conn.slug, '/internal/users/sync', {
           method: 'POST',
@@ -108,6 +113,7 @@ export class S2SService {
 
         await this.prisma.dispatchLog.create({
           data: {
+            projectId: project?.id ?? null,
             provider: 's2s',
             eventType: 'user_sync',
             status: 'SUCCESS',
@@ -120,19 +126,27 @@ export class S2SService {
         this.logger.log(`[S2S Sync] Successfully synced user ${user.id} to ${conn.slug}`);
       } catch (err: unknown) {
         const errorMsg = err instanceof Error ? err.message : String(err);
-        this.logger.error(`[S2S Sync] Failed to sync user ${user.id} to ${conn.slug}: ${errorMsg}`);
+        const detailedError =
+          errorMsg === 'fetch failed'
+            ? `fetch failed (${conn.domain}${conn.apiPrefix} is unreachable/offline)`
+            : errorMsg;
+
+        this.logger.error(
+          `[S2S Sync] Failed to sync user ${user.id} to ${conn.slug}: ${detailedError}`,
+        );
 
         await this.prisma.dispatchLog.create({
           data: {
+            projectId: project?.id ?? null,
             provider: 's2s',
             eventType: 'user_sync',
             status: 'FAIL',
             payload: user as unknown as Prisma.InputJsonValue,
-            error: errorMsg,
+            error: detailedError,
           },
         });
 
-        results.push({ slug: conn.slug, success: false, error: errorMsg });
+        results.push({ slug: conn.slug, success: false, error: detailedError });
       }
     }
 
