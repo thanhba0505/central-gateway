@@ -363,11 +363,6 @@ export default function HomePage() {
           </div>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="mt-16 border-t border-white/10 bg-[#120524]/60 py-6 text-center font-mono text-xs text-violet-300/60 backdrop-blur-md">
-        ThanhBa Ecosystem — Central Gateway SSO & Platform Console
-      </footer>
     </div>
   );
 }

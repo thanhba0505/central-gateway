@@ -4,6 +4,7 @@ import { StarfieldCanvas } from '@/components/starfield-canvas';
 import { PineForestBackdrop } from '@/components/pine-forest-backdrop';
 import { AuthProvider } from '@/lib/auth-context';
 import { AdminGuard } from '@/components/admin-guard';
+import { Footer } from '@/components/footer';
 
 export const metadata: Metadata = {
   title: 'Central Gateway — SSO & Platform Hub',
@@ -27,7 +28,10 @@ export default function RootLayout({
         {/* Application Content */}
         <AuthProvider>
           <AdminGuard>
-            <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
+            <div className="relative z-10 flex min-h-screen flex-col">
+              <div className="flex-1">{children}</div>
+              <Footer />
+            </div>
           </AdminGuard>
         </AuthProvider>
       </body>

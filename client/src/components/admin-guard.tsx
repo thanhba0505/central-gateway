@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { ShieldAlert, LogOut, ExternalLink, Sparkles } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { GlassCard } from './ui/glass-card';
 import { GlassButton } from './ui/glass-button';
+import { IntroScreen } from './intro-screen';
 
 const PUBLIC_PATHS = ['/login', '/register', '/health'];
 
@@ -13,19 +14,41 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isLoading, logout } = useAuth();
+  const [isIntroComplete, setIsIntroComplete] = useState(false);
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith('/api/'));
 
-  useEffect(() => {
-    if (!isLoading && !user && !isPublic) {
+  const handleIntroComplete = useCallback(() => {
+    setIsIntroComplete(true);
+
+    if (user && user.role === 'ADMIN') {
+      // If user is already authenticated as ADMIN and on /login or /register, send to dashboard
+      if (pathname === '/login' || pathname === '/register') {
+        router.replace('/');
+      }
+    } else if (!isPublic) {
+      // If unauthenticated or not ADMIN and trying to access protected route, redirect to login
       router.replace(`/login?returnUrl=${encodeURIComponent(pathname)}`);
     }
-  }, [isLoading, user, isPublic, pathname, router]);
+  }, [user, isPublic, pathname, router]);
 
+  useEffect(() => {
+    if (isIntroComplete && !isLoading && !user && !isPublic) {
+      router.replace(`/login?returnUrl=${encodeURIComponent(pathname)}`);
+    }
+  }, [isIntroComplete, isLoading, user, isPublic, pathname, router]);
+
+  // 1. Initial Intro Splash Screen
+  if (!isIntroComplete) {
+    return <IntroScreen onComplete={handleIntroComplete} />;
+  }
+
+  // 2. Allow public paths without auth
   if (isPublic) {
     return <>{children}</>;
   }
 
+  // 3. Auth loading state
   if (isLoading) {
     return (
       <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
@@ -39,6 +62,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // 4. Redirecting unauthenticated user
   if (!user) {
     return (
       <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
@@ -52,7 +76,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // User is logged in but role is NOT ADMIN
+  // 5. User is logged in but role is NOT ADMIN
   if (user.role !== 'ADMIN') {
     return (
       <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
@@ -99,7 +123,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
             <div className="mt-6 flex flex-col gap-3">
               <GlassButton variant="primary" onClick={() => logout()} className="w-full gap-2 py-3">
                 <LogOut className="h-4 w-4" />
-                <span>Đăng xuất & Đổi tài khoản Admin</span>
+                <span>Đăng xuất &amp; Đổi tài khoản Admin</span>
               </GlassButton>
 
               <a
@@ -118,6 +142,6 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // User is verified ADMIN
+  // 6. User is verified ADMIN
   return <>{children}</>;
 }
