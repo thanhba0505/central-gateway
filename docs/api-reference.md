@@ -126,3 +126,31 @@ Content-Type: application/json
 | `POST` | `/api/v1/projects`              | Register a new project                               |
 | `PUT`  | `/api/v1/projects/:id/channels` | Update project channel mappings                      |
 | `GET`  | `/api/v1/logs`                  | Query dispatch audit trail with pagination and stats |
+
+---
+
+## 3. IAM & Service-to-Service (S2S) Endpoints
+
+### 3.1 OAuth2 PKCE Token Exchange
+
+- **Endpoint**: `POST /api/v1/auth/oauth/token`
+- **Description**: Exchanges authorization code for access token and sanitized user profile with `isActive` status.
+
+### 3.2 OIDC UserInfo
+
+- **Endpoint**: `GET /api/v1/auth/oauth/userinfo`
+- **Headers**: `Authorization: Bearer <access_token>`
+- **Description**: Returns authenticated user profile including `id`, `username`, `email`, `role`, and `isActive`.
+
+### 3.3 User Profile Update & Sync Dispatch
+
+- **Endpoint**: `PATCH /api/v1/auth/profile`
+- **Headers**: `Authorization: Bearer <access_token>`
+- **Description**: Updates user profile (`username`, `email`, `avatarUrl`) and dispatches `POST /api/v1/internal/users/sync` to all active services with `metadata.syncUser = true`.
+
+### 3.4 User Status Toggle & Session Revocation
+
+- **Endpoint**: `PATCH /api/v1/auth/users/:id/status`
+- **Headers**: `Authorization: Bearer <access_token>` (Admin only)
+- **Body**: `{ "isActive": boolean }`
+- **Description**: Activates or deactivates a user account. If deactivating, revokes all active sessions immediately and dispatches sync to all connected services.

@@ -118,3 +118,15 @@ model DispatchLog {
 
 3. **CORS Restrictions**:
    - Configured via `CORS_ORIGINS` in `server/src/main.ts` with explicit domain whitelisting (`localhost:5000`, `localhost:5100`, `https://central-gateway-client.onrender.com`).
+
+---
+
+## 4. Service-to-Service (S2S) & Centralized IAM Sync
+
+1. **Dynamic Service Registry (`service_connections`)**:
+   - Central Gateway stores connections to ecosystem microservices dynamically in PostgreSQL instead of static environment variables.
+   - Decouples domain hostnames (`domain`) from endpoints (`apiPrefix`), outbound tokens (`apiKey`), and incoming verification tokens (`incomingSecret`).
+
+2. **Master IAM & User Synchronization**:
+   - Central Gateway is the authoritative master for user identities and authentication tokens.
+   - When a user profile (`PATCH /auth/profile`) or account status (`PATCH /auth/users/:id/status`) is updated, `S2SService.dispatchUserSync` broadcasts the updated record to all active services configured with `metadata.syncUser = true` via `POST /internal/users/sync`.
