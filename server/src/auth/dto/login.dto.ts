@@ -16,4 +16,9 @@ export class LoginDto {
   @IsBoolean()
   @IsOptional()
   rememberMe?: boolean;
+
+  @ApiProperty({ example: false, required: false, description: 'Dev bypass for local development' })
+  @IsBoolean()
+  @IsOptional()
+  devBypass?: boolean;
 }

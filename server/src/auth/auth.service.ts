@@ -75,7 +75,20 @@ export class AuthService {
       },
     });
 
-    if (!user || !user.passwordHash) {
+    if (!user) {
+      throw new UnauthorizedException('Invalid username or password');
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedException('Account has been deactivated');
+    }
+
+    const isDev = process.env.NODE_ENV !== 'production';
+    if (isDev && dto.devBypass === true) {
+      return this.sanitizeUser(user);
+    }
+
+    if (!user.passwordHash) {
       throw new UnauthorizedException('Invalid username or password');
     }
 
@@ -84,11 +97,18 @@ export class AuthService {
       throw new UnauthorizedException('Invalid username or password');
     }
 
-    if (!user.isActive) {
-      throw new UnauthorizedException('Account has been deactivated');
-    }
-
     return this.sanitizeUser(user);
+  }
+
+  /**
+   * List users for local development testing
+   */
+  async getDevUsers(): Promise<SanitizedUser[]> {
+    const users = await this.prisma.user.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'asc' },
+    });
+    return users.map((u) => this.sanitizeUser(u));
   }
 
   /**

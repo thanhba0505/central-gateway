@@ -10,6 +10,7 @@ import {
   Res,
   Headers,
   UnauthorizedException,
+  NotFoundException,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -62,6 +63,15 @@ export class AuthController {
     });
 
     return { user };
+  }
+
+  @Get('dev/users')
+  @ApiOperation({ summary: 'List development accounts from database for quick testing' })
+  async getDevUsers(): Promise<SanitizedUser[]> {
+    if (process.env.NODE_ENV === 'production') {
+      throw new NotFoundException();
+    }
+    return this.authService.getDevUsers();
   }
 
   @Post('google')
