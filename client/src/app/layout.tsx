@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { StarfieldCanvas } from '@/components/starfield-canvas';
 import { PineForestBackdrop } from '@/components/pine-forest-backdrop';
+import { AuthProvider } from '@/lib/auth-context';
+import { AdminGuard } from '@/components/admin-guard';
 
 export const metadata: Metadata = {
   title: 'Central Gateway — SSO & Platform Hub',
@@ -23,7 +25,11 @@ export default function RootLayout({
         <PineForestBackdrop />
 
         {/* Application Content */}
-        <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
+        <AuthProvider>
+          <AdminGuard>
+            <div className="relative z-10 flex min-h-screen flex-col">{children}</div>
+          </AdminGuard>
+        </AuthProvider>
       </body>
     </html>
   );

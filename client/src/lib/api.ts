@@ -59,6 +59,17 @@ export interface SystemHealth {
   latencyMs?: number;
 }
 
+export interface CurrentUser {
+  id: string;
+  username: string;
+  email: string | null;
+  role: 'ADMIN' | 'USER';
+  avatarUrl: string | null;
+  isEmailVerified: boolean;
+  isActive: boolean;
+  createdAt: string;
+}
+
 export function getGatewaySecretKey(): string {
   if (typeof window === 'undefined') return '';
   return localStorage.getItem('central_gateway_secret_key') || '';
@@ -203,5 +214,29 @@ export const api = {
       timestamp: new Date().toISOString(),
       latencyMs,
     };
+  },
+
+  // Auth & Session
+  async getProfile(): Promise<{ user: CurrentUser | null }> {
+    return request<{ user: CurrentUser | null }>('/auth/me');
+  },
+
+  async logout(): Promise<{ success: boolean }> {
+    return request<{ success: boolean }>('/auth/logout', {
+      method: 'POST',
+    });
+  },
+
+  async googleLogin(payload: {
+    credential?: string;
+    email?: string;
+    name?: string;
+    googleId?: string;
+    avatarUrl?: string;
+  }): Promise<{ user: CurrentUser }> {
+    return request<{ user: CurrentUser }>('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
   },
 };

@@ -13,7 +13,7 @@ describe('AuthService', () => {
     oAuthClient: { findUnique: jest.Mock; create: jest.Mock };
     authCode: { create: jest.Mock; findUnique: jest.Mock; update: jest.Mock };
   };
-  let jwtMock: { sign: jest.Mock };
+  let jwtMock: { sign: jest.Mock; decode: jest.Mock };
   let s2sMock: { dispatchUserSync: jest.Mock };
 
   beforeEach(async () => {
@@ -42,6 +42,7 @@ describe('AuthService', () => {
 
     jwtMock = {
       sign: jest.fn().mockReturnValue('mock.jwt.token'),
+      decode: jest.fn(),
     };
 
     s2sMock = {
@@ -120,6 +121,69 @@ describe('AuthService', () => {
       expect(prismaMock.authCode.update).toHaveBeenCalledWith(
         expect.objectContaining({ data: expect.objectContaining({ usedAt: expect.any(Date) }) }),
       );
+    });
+  });
+
+  describe('googleLogin', () => {
+    it('should link and return existing user if email matches', async () => {
+      const mockUser = {
+        id: 'user-google-1',
+        username: 'existing_user',
+        email: 'test@example.com',
+        role: 'USER',
+        googleId: null,
+        avatarUrl: null,
+        isEmailVerified: true,
+        isActive: true,
+        createdAt: new Date(),
+      };
+
+      prismaMock.user.findFirst.mockResolvedValue(mockUser);
+      prismaMock.user.update.mockResolvedValue({
+        ...mockUser,
+        googleId: 'google_12345',
+      });
+
+      const result = await service.googleLogin({
+        email: 'test@example.com',
+        googleId: 'google_12345',
+        name: 'Existing User',
+      });
+
+      expect(result.username).toBe('existing_user');
+      expect(prismaMock.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'user-google-1' },
+          data: expect.objectContaining({ googleId: 'google_12345' }),
+        }),
+      );
+      expect(s2sMock.dispatchUserSync).toHaveBeenCalled();
+    });
+
+    it('should provision new user when email does not exist', async () => {
+      prismaMock.user.findFirst.mockResolvedValue(null);
+      prismaMock.user.findUnique.mockResolvedValue(null);
+      prismaMock.user.create.mockResolvedValue({
+        id: 'new-user-1',
+        username: 'new_google_user',
+        email: 'newuser@example.com',
+        role: 'USER',
+        googleId: 'google_new_123',
+        avatarUrl: null,
+        isEmailVerified: true,
+        isActive: true,
+        createdAt: new Date(),
+      });
+
+      const result = await service.googleLogin({
+        email: 'newuser@example.com',
+        name: 'New Google User',
+        googleId: 'google_new_123',
+      });
+
+      expect(result.id).toBe('new-user-1');
+      expect(prismaMock.user.create).toHaveBeenCalled();
+      expect(s2sMock.dispatchUserSync).toHaveBeenCalled();
     });
   });
 });

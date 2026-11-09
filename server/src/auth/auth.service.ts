@@ -4,6 +4,7 @@ import {
   ConflictException,
   BadRequestException,
   NotFoundException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
@@ -11,6 +12,7 @@ import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { GoogleLoginDto } from './dto/google-login.dto';
 import { OAuthTokenDto } from './dto/oauth.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateUserStatusDto } from './dto/update-status.dto';
@@ -357,6 +359,119 @@ export class AuthService {
 
     const sanitized = this.sanitizeUser(updated);
 
+    this.s2sService
+      .dispatchUserSync({
+        id: sanitized.id,
+        username: sanitized.username,
+        email: sanitized.email,
+        avatarUrl: sanitized.avatarUrl,
+        role: sanitized.role,
+        isActive: sanitized.isActive,
+      })
+      .catch(() => {});
+
+    return sanitized;
+  }
+
+  /**
+   * Google OAuth / One-Tap authentication (auto-link & provisioning)
+   */
+  async googleLogin(dto: GoogleLoginDto): Promise<SanitizedUser> {
+    let email = dto.email?.toLowerCase().trim();
+    let name = dto.name?.trim();
+    let googleId = dto.googleId?.trim();
+    let avatarUrl = dto.avatarUrl?.trim();
+
+    // Decode JWT credential if provided from Google Identity Services
+    if (dto.credential && (!email || !googleId)) {
+      try {
+        const decoded = this.jwtService.decode(dto.credential) as Record<string, unknown> | null;
+        if (decoded) {
+          if (typeof decoded.email === 'string') email = decoded.email.toLowerCase().trim();
+          if (typeof decoded.name === 'string') name = decoded.name.trim();
+          if (typeof decoded.sub === 'string') googleId = decoded.sub.trim();
+          if (typeof decoded.picture === 'string') avatarUrl = decoded.picture.trim();
+        }
+      } catch {
+        // Fallback
+      }
+    }
+
+    if (!email) {
+      throw new BadRequestException('Could not extract email from Google account');
+    }
+
+    // Check if user exists by email or googleId
+    let user = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ email }, ...(googleId ? [{ googleId }] : [])],
+      },
+    });
+
+    const adminEmails = (
+      process.env.ADMIN_EMAILS || 'admin@wonderlab.local,thanhba@wonderlab.local'
+    )
+      .split(',')
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean);
+
+    const shouldBeAdmin = adminEmails.includes(email);
+
+    if (user) {
+      if (!user.isActive) {
+        throw new ForbiddenException('Account has been deactivated. Please contact administrator.');
+      }
+
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          googleId: user.googleId || googleId || `google_${Date.now()}`,
+          isEmailVerified: true,
+          ...(avatarUrl ? { avatarUrl: user.avatarUrl || avatarUrl } : {}),
+          ...(shouldBeAdmin && user.role !== 'ADMIN' ? { role: 'ADMIN' } : {}),
+        },
+      });
+
+      const sanitized = this.sanitizeUser(user);
+      this.s2sService
+        .dispatchUserSync({
+          id: sanitized.id,
+          username: sanitized.username,
+          email: sanitized.email,
+          avatarUrl: sanitized.avatarUrl,
+          role: sanitized.role,
+          isActive: sanitized.isActive,
+        })
+        .catch(() => {});
+
+      return sanitized;
+    }
+
+    // Create new user for first-time Google signin
+    const baseUsername =
+      (name ? name.replace(/\s+/g, '_').toLowerCase() : email.split('@')[0])
+        .replace(/[^a-zA-Z0-9_]/g, '')
+        .slice(0, 20) || 'user';
+
+    let uniqueUsername = baseUsername;
+    let counter = 1;
+    while (await this.prisma.user.findUnique({ where: { username: uniqueUsername } })) {
+      uniqueUsername = `${baseUsername}_${counter++}`;
+    }
+
+    const newUser = await this.prisma.user.create({
+      data: {
+        username: uniqueUsername,
+        email,
+        googleId: googleId || `google_${Date.now()}`,
+        avatarUrl: avatarUrl || null,
+        isEmailVerified: true,
+        role: shouldBeAdmin ? 'ADMIN' : 'USER',
+        isActive: true,
+      },
+    });
+
+    const sanitized = this.sanitizeUser(newUser);
     this.s2sService
       .dispatchUserSync({
         id: sanitized.id,

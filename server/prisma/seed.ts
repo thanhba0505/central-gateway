@@ -1,9 +1,49 @@
-import { PrismaClient } from '@prisma/client';
+import * as dotenv from 'dotenv';
+dotenv.config();
+dotenv.config({ path: '.env.local' });
+import { PrismaClient, Role } from '@prisma/client';
+import * as argon2 from 'argon2';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('Seeding initial Central Gateway database...');
+
+  // 1. Seed Default Administrator User
+  const isProd = process.env.NODE_ENV === 'production';
+  const adminUsername = process.env.SEED_ADMIN_USERNAME || 'admin';
+  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@wonderlab.local';
+  const rawPassword = process.env.SEED_ADMIN_PASSWORD;
+
+  if (!isProd || rawPassword) {
+    const effectivePassword = rawPassword || 'Admin@Wonderlab2026!';
+    const passwordHash = await argon2.hash(effectivePassword, {
+      type: argon2.argon2id,
+    });
+
+    const admin = await prisma.user.upsert({
+      where: { username: adminUsername },
+      update: {
+        email: adminEmail,
+        passwordHash,
+        role: Role.ADMIN,
+        isEmailVerified: true,
+        isActive: true,
+      },
+      create: {
+        username: adminUsername,
+        email: adminEmail,
+        passwordHash,
+        role: Role.ADMIN,
+        isEmailVerified: true,
+        isActive: true,
+      },
+    });
+
+    console.log(
+      `[Seed] Seeded admin user: ${admin.username} (${admin.email}, Role: ${admin.role})`,
+    );
+  }
 
   // Create Wonderlab project
   const wonderlab = await prisma.project.upsert({

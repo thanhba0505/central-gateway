@@ -20,6 +20,7 @@ import { JwtService } from '@nestjs/jwt';
 import { AuthService, SanitizedUser } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { GoogleLoginDto } from './dto/google-login.dto';
 import { OAuthAuthorizeDto, OAuthTokenDto } from './dto/oauth.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateUserStatusDto } from './dto/update-status.dto';
@@ -51,6 +52,30 @@ export class AuthController {
 
     const isProduction = process.env.NODE_ENV === 'production';
     const maxAgeMs = (dto.rememberMe ? 30 : 7) * 24 * 60 * 60 * 1000;
+
+    res.cookie('gateway_session', token, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: maxAgeMs,
+    });
+
+    return { user };
+  }
+
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Authenticate user via Google ID token or Google SSO payload' })
+  async googleLogin(
+    @Body() dto: GoogleLoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ user: SanitizedUser }> {
+    const user = await this.authService.googleLogin(dto);
+    const token = await this.authService.createSession(user.id, true);
+
+    const isProduction = process.env.NODE_ENV === 'production';
+    const maxAgeMs = 30 * 24 * 60 * 60 * 1000;
 
     res.cookie('gateway_session', token, {
       httpOnly: true,

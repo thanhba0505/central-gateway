@@ -3,12 +3,22 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FolderGit2, Key, LayoutDashboard, Terminal, FlaskConical, LogIn } from 'lucide-react';
+import {
+  FolderGit2,
+  Key,
+  LayoutDashboard,
+  Terminal,
+  FlaskConical,
+  LogIn,
+  LogOut,
+} from 'lucide-react';
 import { api, SystemHealth } from '../lib/api';
+import { useAuth } from '../lib/auth-context';
 import { KeyModal } from './key-modal';
 
 export function Navigation() {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
   const [health, setHealth] = useState<SystemHealth | null>(null);
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
 
@@ -122,14 +132,31 @@ export function Navigation() {
               <span className="hidden sm:inline font-mono">API Key</span>
             </button>
 
-            {/* SSO Login Button */}
-            <Link
-              href="/login"
-              className="flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-[#230b42] shadow-[0_0_18px_rgba(255,255,255,0.4)] transition-all hover:bg-white/95 hover:shadow-[0_0_24px_rgba(255,255,255,0.6)] active:scale-[0.98]"
-            >
-              <LogIn className="h-3.5 w-3.5" />
-              <span>Login</span>
-            </Link>
+            {/* User Session Profile & SSO Login */}
+            {user ? (
+              <div className="flex items-center gap-2">
+                <div className="hidden sm:flex items-center gap-2 rounded-full border border-purple-400/30 bg-purple-500/15 px-3 py-1 text-xs text-purple-200">
+                  <span className="font-semibold text-purple-300">{user.role}</span>
+                  <span className="text-white font-medium">@{user.username}</span>
+                </div>
+                <button
+                  onClick={() => logout()}
+                  title="Logout"
+                  className="flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs text-violet-200 hover:bg-white/20 hover:text-white transition-all active:scale-[0.98]"
+                >
+                  <LogOut className="h-3.5 w-3.5 text-rose-300" />
+                  <span className="hidden sm:inline">Logout</span>
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-[#230b42] shadow-[0_0_18px_rgba(255,255,255,0.4)] transition-all hover:bg-white/95 hover:shadow-[0_0_24px_rgba(255,255,255,0.6)] active:scale-[0.98]"
+              >
+                <LogIn className="h-3.5 w-3.5" />
+                <span>Login</span>
+              </Link>
+            )}
           </div>
         </div>
 
