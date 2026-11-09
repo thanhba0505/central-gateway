@@ -13,10 +13,13 @@ import {
   UserCheck,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth-context';
+import { useTranslation } from '@/i18n';
+import { LanguageSwitcher } from './ui/language-switcher';
 
 export function Navigation() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { dict } = useTranslation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -46,9 +49,9 @@ export function Navigation() {
   }, [isDropdownOpen]);
 
   const navItems = [
-    { name: 'Overview', href: '/', icon: LayoutDashboard },
-    { name: 'Projects & Routing', href: '/projects', icon: FolderGit2 },
-    { name: 'Dispatch Logs', href: '/logs', icon: Terminal },
+    { name: dict.nav.overview, href: '/', icon: LayoutDashboard },
+    { name: dict.nav.projects, href: '/projects', icon: FolderGit2 },
+    { name: dict.nav.logs, href: '/logs', icon: Terminal },
   ];
 
   return (
@@ -89,8 +92,12 @@ export function Navigation() {
           </nav>
         </div>
 
-        {/* Right Controls: User Account Tag with Dropdown */}
+        {/* Right Controls: Language Switcher & User Account Tag */}
         <div className="flex items-center gap-2.5">
+          {/* Language Switcher */}
+          <LanguageSwitcher variant="toggle" />
+
+          {/* User Account / Login */}
           {user ? (
             <div className="relative" ref={dropdownRef}>
               <button
@@ -123,14 +130,14 @@ export function Navigation() {
                           @{user.username}
                         </p>
                         <p className="truncate text-[11px] text-violet-300/70">
-                          {user.email || 'Admin Profile'}
+                          {user.email || dict.nav.profile}
                         </p>
                       </div>
                     </div>
                     <div className="mt-2 flex items-center gap-1.5">
                       <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399]" />
                       <span className="font-mono text-[10px] text-emerald-300">
-                        Role: {user.role}
+                        {dict.nav.role}: {user.role}
                       </span>
                     </div>
                   </div>
@@ -146,7 +153,7 @@ export function Navigation() {
                       className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-medium text-rose-300 hover:bg-rose-500/15 hover:text-rose-200 transition-all active:scale-[0.98]"
                     >
                       <LogOut className="h-4 w-4 text-rose-400" />
-                      <span>Đăng xuất</span>
+                      <span>{dict.nav.logout}</span>
                     </button>
                   </div>
                 </div>
@@ -158,7 +165,7 @@ export function Navigation() {
               className="flex items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-[#230b42] shadow-[0_0_18px_rgba(255,255,255,0.4)] transition-all hover:bg-white/95 hover:shadow-[0_0_24px_rgba(255,255,255,0.6)] active:scale-[0.98]"
             >
               <LogIn className="h-3.5 w-3.5" />
-              <span>Login</span>
+              <span>{dict.nav.login}</span>
             </Link>
           )}
         </div>

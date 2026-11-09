@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from '@/i18n';
 
 interface IntroScreenProps {
   onComplete: () => void;
 }
 
 export function IntroScreen({ onComplete }: IntroScreenProps) {
+  const { dict } = useTranslation();
   const [progress, setProgress] = useState(0);
   const [isFadingOut, setIsFadingOut] = useState(false);
   const onCompleteRef = useRef(onComplete);
@@ -70,7 +72,7 @@ export function IntroScreen({ onComplete }: IntroScreenProps) {
 
         {/* Subtitle */}
         <p className="mt-3 font-mono text-xs sm:text-sm tracking-widest text-violet-300/80 uppercase">
-          SSO IAM &amp; Platform Hub
+          {dict.intro.tagline}
         </p>
 
         {/* Sleek Glowing Progress Bar (Strictly no % text or other labels) */}

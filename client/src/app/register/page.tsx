@@ -7,10 +7,13 @@ import { User, Mail, Lock, Sparkles } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlassInput } from '@/components/ui/glass-input';
 import { GlassButton } from '@/components/ui/glass-button';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { useTranslation } from '@/i18n';
 
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { dict } = useTranslation();
 
   const clientId = searchParams.get('client_id');
   const redirectUri = searchParams.get('redirect_uri');
@@ -27,7 +30,7 @@ function RegisterForm() {
     setError(null);
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(dict.auth.passwords_mismatch);
       return;
     }
 
@@ -62,24 +65,25 @@ function RegisterForm() {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
       <div className="w-full max-w-[420px]">
-        {clientId && (
-          <div className="mb-4 flex items-center justify-center gap-2 rounded-full border border-purple-400/30 bg-white/10 px-4 py-1.5 text-xs text-purple-200 backdrop-blur-md">
-            <Sparkles className="h-3.5 w-3.5 text-purple-300" />
-            <span>
-              Creating account for{' '}
-              <strong className="font-semibold text-white capitalize">{clientId}</strong>
-            </span>
-          </div>
-        )}
+        {/* Language Switcher Bar */}
+        <div className="mb-4 flex items-center justify-between">
+          {clientId ? (
+            <div className="flex items-center gap-2 rounded-full border border-purple-400/30 bg-white/10 px-3.5 py-1 text-xs text-purple-200 backdrop-blur-md">
+              <Sparkles className="h-3.5 w-3.5 text-purple-300" />
+              <span>{dict.auth.sso_scope_banner.replace('{client}', clientId)}</span>
+            </div>
+          ) : (
+            <div />
+          )}
+          <LanguageSwitcher variant="toggle" />
+        </div>
 
         <GlassCard className="p-8 sm:p-10 shadow-[0_12px_45px_rgba(88,28,135,0.4)]">
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow-sm">
-              Register
+              {dict.auth.register_title}
             </h1>
-            <p className="mt-2 text-xs text-violet-200/80">
-              Create your unified ThanhBa Ecosystem account
-            </p>
+            <p className="mt-2 text-xs text-violet-200/80">{dict.auth.register_subtitle}</p>
           </div>
 
           {error && (
@@ -91,7 +95,7 @@ function RegisterForm() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <GlassInput
               type="text"
-              placeholder="Username"
+              placeholder={dict.auth.field_username}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               icon={<User className="h-5 w-5 text-white/70" />}
@@ -102,7 +106,7 @@ function RegisterForm() {
 
             <GlassInput
               type="email"
-              placeholder="Email (optional)"
+              placeholder={dict.auth.field_email}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               icon={<Mail className="h-5 w-5 text-white/70" />}
@@ -112,7 +116,7 @@ function RegisterForm() {
 
             <GlassInput
               type="password"
-              placeholder="Password"
+              placeholder={dict.auth.field_password}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               icon={<Lock className="h-5 w-5 text-white/70" />}
@@ -123,7 +127,7 @@ function RegisterForm() {
 
             <GlassInput
               type="password"
-              placeholder="Confirm Password"
+              placeholder={dict.auth.field_confirm_password}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               icon={<Lock className="h-5 w-5 text-white/70" />}
@@ -139,12 +143,12 @@ function RegisterForm() {
                 isLoading={isLoading}
                 className="w-full text-base py-3.5"
               >
-                Create Account
+                {isLoading ? dict.auth.registering : dict.auth.register_btn}
               </GlassButton>
             </div>
 
             <div className="pt-2 text-center text-xs text-white/80">
-              Already have an account?{' '}
+              {dict.auth.has_account}{' '}
               <Link
                 href={
                   clientId && redirectUri
@@ -153,7 +157,7 @@ function RegisterForm() {
                 }
                 className="font-bold text-white hover:underline transition-colors"
               >
-                Login
+                {dict.auth.login_link}
               </Link>
             </div>
           </form>

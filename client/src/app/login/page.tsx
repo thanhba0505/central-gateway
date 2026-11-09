@@ -7,12 +7,15 @@ import { User, Lock, Sparkles, ShieldAlert, LogOut } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlassInput } from '@/components/ui/glass-input';
 import { GlassButton } from '@/components/ui/glass-button';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { useAuth } from '@/lib/auth-context';
+import { useTranslation } from '@/i18n';
 
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user, isLoading: isAuthLoading, refreshUser, loginWithGoogle, logout } = useAuth();
+  const { dict } = useTranslation();
 
   const clientId = searchParams.get('client_id');
   const redirectUri = searchParams.get('redirect_uri');
@@ -50,7 +53,9 @@ function LoginForm() {
     // Direct access to Central Gateway Control Plane requires ADMIN role
     if (authUser.role !== 'ADMIN') {
       setError(
-        `Tài khoản @${authUser.username} không có quyền quản trị viên (Admin). Bảng điều khiển Central Gateway chỉ dành riêng cho Administrator.`,
+        dict.auth.no_admin_role_desc
+          .replace('{username}', authUser.username)
+          .replace('{role}', authUser.role),
       );
       return;
     }
@@ -90,10 +95,7 @@ function LoginForm() {
     setIsGoogleLoading(true);
 
     try {
-      const simulatedEmail = window.prompt(
-        'Đăng nhập Google: Nhập địa chỉ email Google của bạn (hoặc giữ nguyên email quản trị mặc định):',
-        'admin@wonderlab.local',
-      );
+      const simulatedEmail = window.prompt(dict.auth.google_prompt, 'admin@wonderlab.local');
 
       if (!simulatedEmail) {
         setIsGoogleLoading(false);
@@ -108,7 +110,7 @@ function LoginForm() {
 
       await handleAuthSuccess(res.user);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Đăng nhập Google thất bại');
+      setError(err instanceof Error ? err.message : dict.auth.google_fail);
     } finally {
       setIsGoogleLoading(false);
     }
@@ -117,27 +119,27 @@ function LoginForm() {
   return (
     <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
       <div className="w-full max-w-[420px]">
-        {/* Child App SSO Scope Banner (if applicable) */}
-        {clientId && (
-          <div className="mb-4 flex items-center justify-center gap-2 rounded-full border border-purple-400/30 bg-white/10 px-4 py-1.5 text-xs text-purple-200 backdrop-blur-md">
-            <Sparkles className="h-3.5 w-3.5 text-purple-300" />
-            <span>
-              Single Sign-On access for{' '}
-              <strong className="font-semibold text-white capitalize">{clientId}</strong>
-            </span>
-          </div>
-        )}
+        {/* Language Switcher Bar */}
+        <div className="mb-4 flex items-center justify-between">
+          {clientId ? (
+            <div className="flex items-center gap-2 rounded-full border border-purple-400/30 bg-white/10 px-3.5 py-1 text-xs text-purple-200 backdrop-blur-md">
+              <Sparkles className="h-3.5 w-3.5 text-purple-300" />
+              <span>{dict.auth.sso_scope_banner.replace('{client}', clientId)}</span>
+            </div>
+          ) : (
+            <div />
+          )}
+          <LanguageSwitcher variant="toggle" />
+        </div>
 
         <GlassCard className="p-8 sm:p-10 shadow-[0_12px_45px_rgba(88,28,135,0.4)]">
           {/* Header */}
           <div className="mb-6 text-center">
             <h1 className="text-3xl font-bold tracking-tight text-white drop-shadow-sm">
-              Admin Gateway
+              {dict.auth.title}
             </h1>
             <p className="mt-2 text-xs text-violet-200/80">
-              {clientId
-                ? 'Hệ thống Xác thực SSO cho Wonderlab & Hệ sinh thái'
-                : 'Đăng nhập Quản trị viên Central Gateway'}
+              {clientId ? dict.auth.subtitle_sso : dict.auth.subtitle_admin}
             </p>
           </div>
 
@@ -146,18 +148,19 @@ function LoginForm() {
             <div className="mb-6 rounded-2xl border border-amber-500/40 bg-amber-500/15 p-3.5 text-center text-xs text-amber-200 backdrop-blur-sm">
               <div className="flex items-center justify-center gap-1.5 font-semibold text-amber-300 mb-1">
                 <ShieldAlert className="h-4 w-4" />
-                <span>Không có quyền Admin</span>
+                <span>{dict.auth.no_admin_role}</span>
               </div>
               <p className="leading-relaxed">
-                Bạn đang đăng nhập bằng tài khoản <strong>@{user.username}</strong> ({user.role}).
-                Vui lòng đổi sang tài khoản Admin để truy cập Gateway.
+                {dict.auth.no_admin_role_desc
+                  .replace('{username}', user.username)
+                  .replace('{role}', user.role)}
               </p>
               <button
                 type="button"
                 onClick={() => logout()}
                 className="mt-2 inline-flex items-center gap-1 font-semibold text-white underline hover:text-amber-200"
               >
-                <LogOut className="h-3 w-3" /> Đăng xuất tài khoản này
+                <LogOut className="h-3 w-3" /> {dict.auth.logout_account}
               </button>
             </div>
           )}
@@ -173,7 +176,7 @@ function LoginForm() {
             {/* Username Input */}
             <GlassInput
               type="text"
-              placeholder="Username hoặc Email"
+              placeholder={dict.auth.field_username_email}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               icon={<User className="h-5 w-5 text-white/70" />}
@@ -185,7 +188,7 @@ function LoginForm() {
             {/* Password Input */}
             <GlassInput
               type="password"
-              placeholder="Mật khẩu"
+              placeholder={dict.auth.field_password}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               icon={<Lock className="h-5 w-5 text-white/70" />}
@@ -204,18 +207,16 @@ function LoginForm() {
                   className="h-4 w-4 rounded border-white/30 bg-white/15 text-purple-600 focus:ring-0 focus:ring-offset-0"
                 />
                 <span className="font-medium text-white/80 hover:text-white transition-colors">
-                  Ghi nhớ đăng nhập
+                  {dict.auth.remember_me}
                 </span>
               </label>
 
               <button
                 type="button"
-                onClick={() =>
-                  alert('Khôi phục mật khẩu quản trị vui lòng liên hệ admin hệ thống.')
-                }
+                onClick={() => alert(dict.auth.forgot_password_contact)}
                 className="font-medium text-white/80 hover:text-white hover:underline transition-colors"
               >
-                Quên mật khẩu?
+                {dict.auth.forgot_password}
               </button>
             </div>
 
@@ -227,7 +228,7 @@ function LoginForm() {
                 isLoading={isLoading}
                 className="w-full text-base py-3.5"
               >
-                Đăng nhập
+                {isLoading ? dict.auth.signing_in : dict.auth.sign_in_btn}
               </GlassButton>
             </div>
           </form>
@@ -238,7 +239,9 @@ function LoginForm() {
               <div className="w-full border-t border-white/15" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-[#240b42] px-3 font-mono text-violet-300/70">HOẶC</span>
+              <span className="bg-[#240b42] px-3 font-mono text-violet-300/70">
+                {dict.common.or}
+              </span>
             </div>
           </div>
 
@@ -271,12 +274,12 @@ function LoginForm() {
                 />
               </svg>
             )}
-            <span>Tiếp tục với Google</span>
+            <span>{dict.auth.google_btn}</span>
           </button>
 
           {/* Register Link */}
           <div className="mt-6 text-center text-xs text-white/80">
-            Chưa có tài khoản?{' '}
+            {dict.auth.no_account}{' '}
             <Link
               href={
                 clientId && redirectUri
@@ -287,7 +290,7 @@ function LoginForm() {
               }
               className="font-bold text-white hover:underline transition-colors"
             >
-              Đăng ký
+              {dict.auth.register_link}
             </Link>
           </div>
         </GlassCard>

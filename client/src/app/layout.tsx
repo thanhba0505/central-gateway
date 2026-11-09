@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { StarfieldCanvas } from '@/components/starfield-canvas';
 import { PineForestBackdrop } from '@/components/pine-forest-backdrop';
+import { I18nProvider } from '@/i18n';
 import { AuthProvider } from '@/lib/auth-context';
 import { AdminGuard } from '@/components/admin-guard';
 import { AppShell } from '@/components/app-shell';
@@ -26,11 +27,13 @@ export default function RootLayout({
         <PineForestBackdrop />
 
         {/* Application Content */}
-        <AuthProvider>
-          <AppShell>
-            <AdminGuard>{children}</AdminGuard>
-          </AppShell>
-        </AuthProvider>
+        <I18nProvider>
+          <AuthProvider>
+            <AppShell>
+              <AdminGuard>{children}</AdminGuard>
+            </AppShell>
+          </AuthProvider>
+        </I18nProvider>
       </body>
     </html>
   );

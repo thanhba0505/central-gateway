@@ -5,8 +5,10 @@ import { FolderGit2, Plus, Trash2, Edit2, X, RefreshCw, AlertCircle, Sparkles } 
 import { GlassCard } from '../../components/ui/glass-card';
 import { GlassButton } from '../../components/ui/glass-button';
 import { api, Project, ChannelMapping } from '../../lib/api';
+import { useTranslation } from '../../i18n';
 
 export default function ProjectsPage() {
+  const { dict } = useTranslation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -122,7 +124,7 @@ export default function ProjectsPage() {
   };
 
   const handleDeleteChannel = async (projectId: string, mappingId: string) => {
-    if (!confirm('Are you sure you want to remove this channel mapping?')) return;
+    if (!confirm(dict.projects.delete_confirm)) return;
     try {
       await api.deleteChannel(projectId, mappingId);
       await loadProjects();
@@ -138,21 +140,18 @@ export default function ProjectsPage() {
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-purple-400/30 bg-purple-500/15 px-3 py-0.5 text-xs font-semibold text-purple-200">
             <Sparkles className="h-3 w-3 text-purple-300" />
-            <span>Ecosystem Application Registry</span>
+            <span>{dict.projects.badge}</span>
           </div>
           <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-            Projects & Channel Routing
+            {dict.projects.title}
           </h1>
-          <p className="mt-1 text-sm text-violet-200/80">
-            Register child applications, manage OAuth credentials, and bind event scopes to Slack
-            channels.
-          </p>
+          <p className="mt-1 text-sm text-violet-200/80">{dict.projects.subtitle}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            aria-label="Refresh project list"
+            aria-label={dict.common.refresh}
             className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-violet-200 transition-all hover:bg-white/20 hover:text-white disabled:opacity-50"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin text-purple-300' : ''}`} />
@@ -163,7 +162,7 @@ export default function ProjectsPage() {
             className="gap-2"
           >
             <Plus className="h-4 w-4" />
-            <span>Register Project</span>
+            <span>{dict.projects.register_btn}</span>
           </GlassButton>
         </div>
       </div>
@@ -171,15 +170,13 @@ export default function ProjectsPage() {
       {/* Project List */}
       {loading ? (
         <GlassCard className="p-12 text-center font-mono text-sm text-violet-300/60">
-          Loading registered applications...
+          {dict.projects.loading}
         </GlassCard>
       ) : projects.length === 0 ? (
         <GlassCard className="p-12 text-center">
           <FolderGit2 className="mx-auto mb-3 h-10 w-10 text-violet-300/40" />
-          <h3 className="text-base font-semibold text-white">No applications found</h3>
-          <p className="mt-1 text-sm text-violet-200/70">
-            Register your first project to start routing notifications and issuing SSO credentials.
-          </p>
+          <h3 className="text-base font-semibold text-white">{dict.projects.no_projects}</h3>
+          <p className="mt-1 text-sm text-violet-200/70">{dict.projects.no_projects_desc}</p>
         </GlassCard>
       ) : (
         <div className="space-y-6">
@@ -204,11 +201,11 @@ export default function ProjectsPage() {
                             : 'border-white/15 bg-white/10 text-white/50'
                         }`}
                       >
-                        {proj.isActive ? 'Active' : 'Disabled'}
+                        {proj.isActive ? dict.common.active : dict.common.disabled}
                       </span>
                     </div>
                     <p className="mt-1 text-xs text-violet-200/70">
-                      {proj.description || 'Central platform module'}
+                      {proj.description || dict.dashboard.ecosystem_service}
                     </p>
                   </div>
                 </div>
@@ -222,7 +219,7 @@ export default function ProjectsPage() {
                         : 'border-emerald-500/30 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
                     }`}
                   >
-                    {proj.isActive ? 'Deactivate' : 'Activate'}
+                    {proj.isActive ? dict.projects.deactivate : dict.projects.activate}
                   </button>
                   <GlassButton
                     variant="glass"
@@ -230,7 +227,7 @@ export default function ProjectsPage() {
                     className="gap-1.5 py-1.5 text-xs text-purple-200"
                   >
                     <Plus className="h-3.5 w-3.5 text-purple-300" />
-                    <span>Map Channel</span>
+                    <span>{dict.projects.add_channel}</span>
                   </GlassButton>
                 </div>
               </div>
@@ -241,19 +238,18 @@ export default function ProjectsPage() {
                   <table className="w-full text-left font-mono text-xs">
                     <thead>
                       <tr className="border-b border-white/15 text-[11px] uppercase tracking-wider text-violet-300/60">
-                        <th className="pb-3 font-medium">Event Scope</th>
-                        <th className="pb-3 font-medium">Slack Channel</th>
-                        <th className="pb-3 font-medium">Channel ID</th>
-                        <th className="pb-3 font-medium">Provider</th>
-                        <th className="pb-3 text-right font-medium">Actions</th>
+                        <th className="pb-3 font-medium">{dict.projects.col_event_type}</th>
+                        <th className="pb-3 font-medium">{dict.projects.col_channel_name}</th>
+                        <th className="pb-3 font-medium">{dict.projects.col_channel_id}</th>
+                        <th className="pb-3 font-medium">{dict.projects.col_provider}</th>
+                        <th className="pb-3 text-right font-medium">{dict.projects.col_actions}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/10 text-violet-200">
                       {proj.channels?.length === 0 ? (
                         <tr>
                           <td colSpan={5} className="py-6 text-center text-violet-300/50">
-                            No channel mappings defined for this project. System defaults will be
-                            applied.
+                            {dict.projects.no_channels}
                           </td>
                         </tr>
                       ) : (
@@ -275,14 +271,14 @@ export default function ProjectsPage() {
                               <div className="inline-flex items-center gap-1.5">
                                 <button
                                   onClick={() => openChannelModal(proj.id, ch)}
-                                  title="Edit channel mapping"
+                                  title={dict.projects.edit_channel}
                                   className="rounded-full p-1.5 text-violet-300/70 transition-colors hover:bg-white/10 hover:text-white"
                                 >
                                   <Edit2 className="h-3.5 w-3.5" />
                                 </button>
                                 <button
                                   onClick={() => handleDeleteChannel(proj.id, ch.id)}
-                                  title="Remove channel mapping"
+                                  title={dict.projects.delete_channel}
                                   className="rounded-full p-1.5 text-violet-300/70 transition-colors hover:bg-rose-500/20 hover:text-rose-300"
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
@@ -306,7 +302,7 @@ export default function ProjectsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d021b]/80 p-4 backdrop-blur-md">
           <div className="w-full max-w-md rounded-3xl border border-white/20 bg-[#1a0833]/90 p-6 shadow-[0_16px_50px_rgba(107,36,155,0.4)] backdrop-blur-2xl">
             <div className="flex items-center justify-between border-b border-white/15 pb-4">
-              <h3 className="font-bold text-white">Register Ecosystem Application</h3>
+              <h3 className="font-bold text-white">{dict.projects.modal_register_title}</h3>
               <button
                 onClick={() => setIsNewProjectOpen(false)}
                 className="rounded-full p-1.5 text-violet-300/70 transition-colors hover:bg-white/10 hover:text-white"
@@ -325,12 +321,12 @@ export default function ProjectsPage() {
 
               <div>
                 <label className="mb-1.5 ml-1 block font-mono text-xs uppercase tracking-wider text-violet-300">
-                  Project Slug (Unique identifier)
+                  {dict.projects.field_slug}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. wonderlab, subapp-two"
+                  placeholder={dict.projects.field_slug_placeholder}
                   value={newProjectSlug}
                   onChange={(e) => setNewProjectSlug(e.target.value)}
                   className="w-full rounded-full border border-white/25 bg-white/[0.12] px-4 py-2.5 font-mono text-sm text-white placeholder-white/40 focus:border-white/50 focus:bg-white/[0.2] focus:outline-none focus:ring-4 focus:ring-violet-400/25"
@@ -339,12 +335,12 @@ export default function ProjectsPage() {
 
               <div>
                 <label className="mb-1.5 ml-1 block font-mono text-xs uppercase tracking-wider text-violet-300">
-                  Application Name
+                  {dict.projects.field_name}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Wonderlab Platform"
+                  placeholder={dict.projects.field_name_placeholder}
                   value={newProjectName}
                   onChange={(e) => setNewProjectName(e.target.value)}
                   className="w-full rounded-full border border-white/25 bg-white/[0.12] px-4 py-2.5 text-sm text-white placeholder-white/40 focus:border-white/50 focus:bg-white/[0.2] focus:outline-none focus:ring-4 focus:ring-violet-400/25"
@@ -353,11 +349,11 @@ export default function ProjectsPage() {
 
               <div>
                 <label className="mb-1.5 ml-1 block font-mono text-xs uppercase tracking-wider text-violet-300">
-                  Description (Optional)
+                  {dict.projects.field_desc}
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="Interactive science simulations..."
+                  placeholder={dict.projects.field_desc_placeholder}
                   value={newProjectDesc}
                   onChange={(e) => setNewProjectDesc(e.target.value)}
                   className="w-full rounded-2xl border border-white/25 bg-white/[0.12] px-4 py-2.5 text-sm text-white placeholder-white/40 focus:border-white/50 focus:bg-white/[0.2] focus:outline-none focus:ring-4 focus:ring-violet-400/25"
@@ -370,7 +366,7 @@ export default function ProjectsPage() {
                   onClick={() => setIsNewProjectOpen(false)}
                   className="rounded-full px-4 py-2 text-sm text-violet-300 hover:bg-white/10 hover:text-white transition-colors"
                 >
-                  Cancel
+                  {dict.common.cancel}
                 </button>
                 <GlassButton
                   type="submit"
@@ -378,7 +374,7 @@ export default function ProjectsPage() {
                   isLoading={creatingProject}
                   className="py-2.5"
                 >
-                  Register Project
+                  {dict.projects.register_btn}
                 </GlassButton>
               </div>
             </form>
@@ -391,7 +387,7 @@ export default function ProjectsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d021b]/80 p-4 backdrop-blur-md">
           <div className="w-full max-w-md rounded-3xl border border-white/20 bg-[#1a0833]/90 p-6 shadow-[0_16px_50px_rgba(107,36,155,0.4)] backdrop-blur-2xl">
             <div className="flex items-center justify-between border-b border-white/15 pb-4">
-              <h3 className="font-bold text-white">Configure Channel Mapping</h3>
+              <h3 className="font-bold text-white">{dict.projects.modal_channel_title}</h3>
               <button
                 onClick={() => setIsChannelModalOpen(false)}
                 className="rounded-full p-1.5 text-violet-300/70 transition-colors hover:bg-white/10 hover:text-white"
@@ -410,7 +406,7 @@ export default function ProjectsPage() {
 
               <div>
                 <label className="mb-1.5 ml-1 block font-mono text-xs uppercase tracking-wider text-violet-300">
-                  Event Scope
+                  {dict.projects.field_event_type}
                 </label>
                 <select
                   value={channelEventType}
@@ -427,7 +423,7 @@ export default function ProjectsPage() {
 
               <div>
                 <label className="mb-1.5 ml-1 block font-mono text-xs uppercase tracking-wider text-violet-300">
-                  Slack Channel Name
+                  {dict.projects.field_channel_name}
                 </label>
                 <input
                   type="text"
@@ -441,7 +437,7 @@ export default function ProjectsPage() {
 
               <div>
                 <label className="mb-1.5 ml-1 block font-mono text-xs uppercase tracking-wider text-violet-300">
-                  Slack Channel ID
+                  {dict.projects.field_channel_id}
                 </label>
                 <input
                   type="text"
@@ -452,7 +448,7 @@ export default function ProjectsPage() {
                   className="w-full rounded-full border border-white/25 bg-white/[0.12] px-4 py-2.5 font-mono text-sm text-white placeholder-white/40 focus:border-white/50 focus:bg-white/[0.2] focus:outline-none focus:ring-4 focus:ring-violet-400/25"
                 />
                 <span className="ml-2 mt-1 block text-[11px] text-violet-300/60">
-                  Right click channel in Slack &rarr; View channel details to copy ID.
+                  {dict.projects.field_channel_id_desc}
                 </span>
               </div>
 
@@ -462,7 +458,7 @@ export default function ProjectsPage() {
                   onClick={() => setIsChannelModalOpen(false)}
                   className="rounded-full px-4 py-2 text-sm text-violet-300 hover:bg-white/10 hover:text-white transition-colors"
                 >
-                  Cancel
+                  {dict.common.cancel}
                 </button>
                 <GlassButton
                   type="submit"
@@ -470,7 +466,7 @@ export default function ProjectsPage() {
                   isLoading={savingChannel}
                   className="py-2.5"
                 >
-                  Save Mapping
+                  {dict.projects.save_mapping}
                 </GlassButton>
               </div>
             </form>

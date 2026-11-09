@@ -16,8 +16,10 @@ import {
 } from 'lucide-react';
 import { GlassCard } from '../components/ui/glass-card';
 import { api, Project, LogsResponse } from '../lib/api';
+import { useTranslation } from '../i18n';
 
 export default function HomePage() {
+  const { dict } = useTranslation();
   const [projects, setProjects] = useState<Project[]>([]);
   const [logsData, setLogsData] = useState<LogsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,11 +59,9 @@ export default function HomePage() {
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-white drop-shadow-sm sm:text-3xl">
-            Bảng điều khiển Gateway
+            {dict.dashboard.title}
           </h1>
-          <p className="mt-1 text-xs text-violet-200/70 sm:text-sm">
-            Quản trị định tuyến thông báo Slack, phiên SSO và nhật ký điều phối hệ sinh thái
-          </p>
+          <p className="mt-1 text-xs text-violet-200/70 sm:text-sm">{dict.dashboard.subtitle}</p>
         </div>
         <div className="flex items-center gap-3">
           <button
@@ -73,7 +73,7 @@ export default function HomePage() {
             <RefreshCw
               className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin text-purple-300' : ''}`}
             />
-            <span>{refreshing ? 'Đang cập nhật...' : 'Làm mới'}</span>
+            <span>{refreshing ? dict.common.refreshing : dict.common.refresh}</span>
           </button>
         </div>
       </div>
@@ -83,7 +83,9 @@ export default function HomePage() {
         {/* Card 1: Connected Projects */}
         <GlassCard variant="interactive" className="p-6">
           <div className="flex items-center justify-between text-violet-200/80">
-            <span className="text-xs font-mono uppercase tracking-wider">Registered Apps</span>
+            <span className="text-xs font-mono uppercase tracking-wider">
+              {dict.dashboard.registered_apps}
+            </span>
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-500/20 text-purple-300">
               <FolderGit2 className="h-4 w-4" />
             </div>
@@ -92,12 +94,12 @@ export default function HomePage() {
             {loading ? '--' : projects.length}
           </p>
           <div className="mt-3 flex items-center justify-between text-xs text-violet-200/80">
-            <span>Active in ecosystem</span>
+            <span>{dict.dashboard.active_in_ecosystem}</span>
             <Link
               href="/projects"
               className="flex items-center gap-1 font-mono text-purple-300 transition-colors hover:text-white"
             >
-              Manage <ArrowRight className="h-3 w-3" />
+              {dict.dashboard.manage} <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
         </GlassCard>
@@ -105,7 +107,9 @@ export default function HomePage() {
         {/* Card 2: Mapped Channels */}
         <GlassCard variant="interactive" className="p-6">
           <div className="flex items-center justify-between text-violet-200/80">
-            <span className="text-xs font-mono uppercase tracking-wider">Slack Channels</span>
+            <span className="text-xs font-mono uppercase tracking-wider">
+              {dict.dashboard.slack_channels}
+            </span>
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/20 text-blue-300">
               <Bell className="h-4 w-4" />
             </div>
@@ -114,14 +118,18 @@ export default function HomePage() {
             {loading ? '--' : totalChannels}
           </p>
           <p className="mt-3 text-xs text-violet-200/80">
-            Routed across {projects.length} connected project{projects.length !== 1 ? 's' : ''}
+            {dict.dashboard.routed_across
+              .replace('{count}', String(projects.length))
+              .replace('{plural}', projects.length !== 1 ? 's' : '')}
           </p>
         </GlassCard>
 
         {/* Card 3: Total Dispatches */}
         <GlassCard variant="interactive" className="p-6">
           <div className="flex items-center justify-between text-violet-200/80">
-            <span className="text-xs font-mono uppercase tracking-wider">Total Dispatches</span>
+            <span className="text-xs font-mono uppercase tracking-wider">
+              {dict.dashboard.total_dispatches}
+            </span>
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-violet-500/20 text-violet-300">
               <Activity className="h-4 w-4" />
             </div>
@@ -131,13 +139,14 @@ export default function HomePage() {
           </p>
           <div className="mt-3 flex items-center justify-between text-xs text-violet-200/80">
             <span className="flex items-center gap-1.5 font-mono text-emerald-300">
-              <CheckCircle2 className="h-3.5 w-3.5" /> {successRate}% success
+              <CheckCircle2 className="h-3.5 w-3.5" />{' '}
+              {dict.dashboard.success_rate.replace('{rate}', String(successRate))}
             </span>
             <Link
               href="/logs"
               className="flex items-center gap-1 font-mono text-purple-300 transition-colors hover:text-white"
             >
-              Logs <ArrowRight className="h-3 w-3" />
+              {dict.dashboard.logs} <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
         </GlassCard>
@@ -145,14 +154,16 @@ export default function HomePage() {
         {/* Card 4: Database Engine */}
         <GlassCard variant="interactive" className="p-6">
           <div className="flex items-center justify-between text-violet-200/80">
-            <span className="text-xs font-mono uppercase tracking-wider">Database Engine</span>
+            <span className="text-xs font-mono uppercase tracking-wider">
+              {dict.dashboard.database_engine}
+            </span>
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-300">
               <Database className="h-4 w-4" />
             </div>
           </div>
           <p className="mt-3 font-mono text-xl font-bold text-white">Neon PostgreSQL</p>
           <p className="mt-3 flex items-center gap-1.5 text-xs text-emerald-300">
-            <ShieldCheck className="h-3.5 w-3.5" /> Serverless Connection Pool
+            <ShieldCheck className="h-3.5 w-3.5" /> {dict.dashboard.serverless_pool}
           </p>
         </GlassCard>
       </div>
@@ -165,24 +176,27 @@ export default function HomePage() {
             <div className="flex items-center justify-between border-b border-white/15 px-6 py-4">
               <div className="flex items-center gap-2.5">
                 <FolderGit2 className="h-4 w-4 text-purple-300" />
-                <h2 className="text-base font-semibold text-white">Connected Applications</h2>
+                <h2 className="text-base font-semibold text-white">
+                  {dict.dashboard.connected_apps}
+                </h2>
               </div>
               <Link
                 href="/projects"
                 className="flex items-center gap-1 font-mono text-xs text-purple-300 transition-colors hover:text-white"
               >
-                View all ({projects.length}) <ArrowRight className="h-3 w-3" />
+                {dict.dashboard.view_all.replace('{count}', String(projects.length))}{' '}
+                <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
 
             <div className="divide-y divide-white/10 p-3">
               {loading ? (
                 <div className="p-8 text-center font-mono text-xs text-violet-300/60">
-                  Loading ecosystem projects...
+                  {dict.dashboard.loading_projects}
                 </div>
               ) : projects.length === 0 ? (
                 <div className="p-8 text-center text-xs text-violet-300/60">
-                  No applications registered yet.
+                  {dict.dashboard.no_projects}
                 </div>
               ) : (
                 projects.map((proj) => (
@@ -207,11 +221,11 @@ export default function HomePage() {
                                 : 'border-white/15 bg-white/10 text-white/50'
                             }`}
                           >
-                            {proj.isActive ? 'Active' : 'Disabled'}
+                            {proj.isActive ? dict.common.active : dict.common.disabled}
                           </span>
                         </div>
                         <p className="mt-1 text-xs text-violet-200/70">
-                          {proj.description || 'Ecosystem platform service'}
+                          {proj.description || dict.dashboard.ecosystem_service}
                         </p>
                         <div className="mt-2.5 flex flex-wrap gap-1.5">
                           {proj.channels?.map((ch) => (
@@ -229,13 +243,16 @@ export default function HomePage() {
 
                     <div className="flex items-end justify-between gap-1 text-right sm:flex-col sm:justify-center">
                       <span className="font-mono text-xs font-semibold text-white">
-                        {proj._count?.logs || 0} events
+                        {dict.dashboard.events_count.replace(
+                          '{count}',
+                          String(proj._count?.logs || 0),
+                        )}
                       </span>
                       <Link
                         href={`/logs?project=${proj.slug}`}
                         className="font-mono text-[11px] text-purple-300 hover:text-white hover:underline"
                       >
-                        View audit logs
+                        {dict.dashboard.view_audit_logs}
                       </Link>
                     </div>
                   </div>
@@ -248,25 +265,28 @@ export default function HomePage() {
           <GlassCard className="p-6">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
               <Flame className="h-4 w-4 text-amber-300" />
-              Infrastructure & SSO Topology
+              {dict.dashboard.topology_title}
             </h3>
             <p className="mt-2 text-xs leading-relaxed text-violet-200/80">
-              Central Gateway acts as the single source of truth for identity authentication and
-              notification dispatch across all ThanhBa services. Applications connect via OAuth2
-              Authorization Code with PKCE, ensuring users log in once and enjoy frictionless access
-              across all sub-apps.
+              {dict.dashboard.topology_desc}
             </p>
             <div className="mt-4 grid grid-cols-2 gap-3 font-mono text-xs sm:grid-cols-3">
               <div className="rounded-2xl border border-white/15 bg-white/[0.06] p-3 backdrop-blur-md">
-                <span className="block text-[10px] text-violet-300/60">SSO PROTOCOL</span>
+                <span className="block text-[10px] text-violet-300/60">
+                  {dict.dashboard.sso_protocol}
+                </span>
                 <span className="mt-1 block truncate text-white">OAuth2 + PKCE</span>
               </div>
               <div className="rounded-2xl border border-white/15 bg-white/[0.06] p-3 backdrop-blur-md">
-                <span className="block text-[10px] text-violet-300/60">BACKEND API</span>
+                <span className="block text-[10px] text-violet-300/60">
+                  {dict.dashboard.backend_api}
+                </span>
                 <span className="mt-1 block truncate text-white">NestJS 10 REST</span>
               </div>
               <div className="rounded-2xl border border-white/15 bg-white/[0.06] p-3 backdrop-blur-md">
-                <span className="block text-[10px] text-violet-300/60">NOTIFICATION</span>
+                <span className="block text-[10px] text-violet-300/60">
+                  {dict.dashboard.notification}
+                </span>
                 <span className="mt-1 block truncate text-white">Slack Block Kit</span>
               </div>
             </div>
@@ -279,24 +299,26 @@ export default function HomePage() {
             <div className="flex items-center justify-between border-b border-white/15 px-6 py-4">
               <div className="flex items-center gap-2">
                 <Terminal className="h-4 w-4 text-purple-300" />
-                <h2 className="text-base font-semibold text-white">Recent Dispatches</h2>
+                <h2 className="text-base font-semibold text-white">
+                  {dict.dashboard.recent_dispatches}
+                </h2>
               </div>
               <Link
                 href="/logs"
                 className="flex items-center gap-1 font-mono text-xs text-purple-300 transition-colors hover:text-white"
               >
-                All Logs <ArrowRight className="h-3 w-3" />
+                {dict.dashboard.all_logs} <ArrowRight className="h-3 w-3" />
               </Link>
             </div>
 
             <div className="divide-y divide-white/10 p-3">
               {loading ? (
                 <div className="p-8 text-center font-mono text-xs text-violet-300/60">
-                  Streaming activity...
+                  {dict.dashboard.streaming_activity}
                 </div>
               ) : !logsData?.items || logsData.items.length === 0 ? (
                 <div className="p-8 text-center text-xs text-violet-300/60">
-                  No dispatch events recorded yet.
+                  {dict.dashboard.no_dispatches}
                 </div>
               ) : (
                 logsData.items.map((log) => {
@@ -336,7 +358,7 @@ export default function HomePage() {
                           {log.error ? (
                             <span className="text-rose-300">{log.error}</span>
                           ) : (
-                            `Provider: ${log.provider}`
+                            `${dict.dashboard.provider}: ${log.provider}`
                           )}
                         </span>
                         <span
