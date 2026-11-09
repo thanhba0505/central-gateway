@@ -17,9 +17,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   const [isIntroComplete, setIsIntroComplete] = useState(false);
 
   const safePathname = pathname || '/';
-  const isPublic = PUBLIC_PATHS.some(
-    (p) => safePathname === p || safePathname.startsWith('/api/'),
-  );
+  const isPublic = PUBLIC_PATHS.some((p) => safePathname === p || safePathname.startsWith('/api/'));
 
   const handleIntroComplete = useCallback(() => {
     setIsIntroComplete(true);
