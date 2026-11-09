@@ -180,7 +180,7 @@ export class AuthService {
       throw new BadRequestException('OAuth client application is inactive');
     }
 
-    const isWhitelisted = client.redirectUris.some((uri) => redirectUri.startsWith(uri));
+    const isWhitelisted = client.redirectUris.some((uri: string) => redirectUri.startsWith(uri));
     if (!isWhitelisted) {
       throw new BadRequestException(`Redirect URI not registered for client '${clientId}'`);
     }

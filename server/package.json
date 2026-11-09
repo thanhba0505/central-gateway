@@ -15,6 +15,7 @@
     "test:cov": "jest --coverage",
     "typecheck": "tsc --noEmit",
     "prisma:generate": "prisma generate",
+    "db:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:seed": "ts-node prisma/seed.ts"

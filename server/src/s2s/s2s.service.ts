@@ -90,7 +90,7 @@ export class S2SService {
       where: { isActive: true },
     });
 
-    const targetConnections = connections.filter((c) => {
+    const targetConnections = connections.filter((c: { metadata?: unknown }) => {
       if (!c.metadata || typeof c.metadata !== 'object') return false;
       const meta = c.metadata as Record<string, unknown>;
       return meta.syncUser === true;

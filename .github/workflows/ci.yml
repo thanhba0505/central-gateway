@@ -35,6 +35,9 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma Client
+        run: pnpm --filter central-gateway-server prisma:generate
+
       - name: Code Formatting Check
         run: pnpm format:check
 
@@ -64,6 +67,9 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma Client
+        run: pnpm --filter central-gateway-server prisma:generate
+
       - name: Run Jest Test Suite
         run: pnpm test
 
@@ -86,6 +92,9 @@ jobs:
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        run: pnpm --filter central-gateway-server prisma:generate
 
       - name: Build All Workspaces
         run: pnpm build

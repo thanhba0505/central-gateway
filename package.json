@@ -8,6 +8,7 @@
     "dev:client": "pnpm --filter central-gateway-client dev",
     "dev:server": "pnpm --filter central-gateway-server start:dev",
     "build": "pnpm --filter central-gateway-client build && pnpm --filter central-gateway-server build",
+    "db:generate": "pnpm --filter central-gateway-server prisma:generate",
     "lint": "pnpm -r lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
