@@ -168,7 +168,7 @@ async function main() {
       domain:
         process.env.NODE_ENV === 'production'
           ? 'https://wonderlab-server.onrender.com'
-          : 'http://localhost:4201',
+          : 'http://localhost:4101',
       apiPrefix: '/api/v1',
       apiKey: 'gw_to_wl_s2s_secret_2026',
       incomingSecret: 'wl_to_gw_s2s_secret_2026',
@@ -182,7 +182,7 @@ async function main() {
       domain:
         process.env.NODE_ENV === 'production'
           ? 'https://wonderlab-server.onrender.com'
-          : 'http://localhost:4201',
+          : 'http://localhost:4101',
       apiPrefix: '/api/v1',
       apiKey: 'gw_to_wl_s2s_secret_2026',
       incomingSecret: 'wl_to_gw_s2s_secret_2026',
