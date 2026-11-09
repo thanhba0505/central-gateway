@@ -167,7 +167,7 @@ export class AuthService {
           name: 'Wonderlab Interactive Science',
           redirectUris: [
             'https://wonderlab.io.vn/auth/callback',
-            'http://localhost:4200/auth/callback',
+            'http://localhost:4100/auth/callback',
             'http://localhost:3000/auth/callback',
           ],
         },

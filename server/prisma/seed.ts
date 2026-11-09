@@ -139,7 +139,6 @@ async function main() {
       name: 'Wonderlab Platform',
       redirectUris: [
         'http://localhost:4100/auth/callback',
-        'http://localhost:4200/auth/callback',
         'https://wonderlab.io.vn/auth/callback',
         'https://www.wonderlab.io.vn/auth/callback',
       ],
@@ -151,7 +150,6 @@ async function main() {
       name: 'Wonderlab Platform',
       redirectUris: [
         'http://localhost:4100/auth/callback',
-        'http://localhost:4200/auth/callback',
         'https://wonderlab.io.vn/auth/callback',
         'https://www.wonderlab.io.vn/auth/callback',
       ],

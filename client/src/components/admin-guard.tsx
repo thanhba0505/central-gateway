@@ -117,7 +117,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
                 </GlassButton>
 
                 <a
-                  href={process.env.NEXT_PUBLIC_WONDERLAB_URL || 'http://localhost:4200'}
+                  href={process.env.NEXT_PUBLIC_WONDERLAB_URL || 'http://localhost:4100'}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex w-full items-center justify-center gap-1.5 rounded-2xl border border-white/20 bg-white/10 py-2.5 text-xs font-semibold text-violet-200 transition-all hover:bg-white/20 hover:text-white"

@@ -26,7 +26,7 @@ async function bootstrap() {
   const defaultOrigins = [
     'http://localhost:5100',
     'http://localhost:5000',
-    'http://localhost:4200',
+    'http://localhost:4100',
     'http://localhost:3000',
     'https://central-gateway-client.onrender.com',
     'https://wonderlab.io.vn',
