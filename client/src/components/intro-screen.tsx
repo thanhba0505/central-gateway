@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface IntroScreenProps {
   onComplete: () => void;
@@ -9,12 +9,18 @@ interface IntroScreenProps {
 export function IntroScreen({ onComplete }: IntroScreenProps) {
   const [progress, setProgress] = useState(0);
   const [isFadingOut, setIsFadingOut] = useState(false);
+  const onCompleteRef = useRef(onComplete);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
     const startTime = performance.now();
     const duration = 1300; // 1.3 seconds progress duration
 
     let frameId: number;
+    let timeoutId: NodeJS.Timeout | null = null;
 
     const tick = (now: number) => {
       const elapsed = now - startTime;
@@ -26,10 +32,9 @@ export function IntroScreen({ onComplete }: IntroScreenProps) {
       } else {
         // Start fade-out when progress bar completes
         setIsFadingOut(true);
-        const timer = setTimeout(() => {
-          onComplete();
+        timeoutId = setTimeout(() => {
+          onCompleteRef.current();
         }, 300);
-        return () => clearTimeout(timer);
       }
     };
 
@@ -37,8 +42,9 @@ export function IntroScreen({ onComplete }: IntroScreenProps) {
 
     return () => {
       cancelAnimationFrame(frameId);
+      if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [onComplete]);
+  }, []); // Run animation once on mount
 
   return (
     <div

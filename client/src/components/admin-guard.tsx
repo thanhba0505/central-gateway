@@ -16,132 +16,125 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading, logout } = useAuth();
   const [isIntroComplete, setIsIntroComplete] = useState(false);
 
-  const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith('/api/'));
+  const safePathname = pathname || '/';
+  const isPublic = PUBLIC_PATHS.some(
+    (p) => safePathname === p || safePathname.startsWith('/api/'),
+  );
 
   const handleIntroComplete = useCallback(() => {
     setIsIntroComplete(true);
 
     if (user && user.role === 'ADMIN') {
-      // If user is already authenticated as ADMIN and on /login or /register, send to dashboard
-      if (pathname === '/login' || pathname === '/register') {
+      // If user is already authenticated as ADMIN and currently on login/register, route to dashboard
+      if (safePathname === '/login' || safePathname === '/register') {
         router.replace('/');
       }
     } else if (!isPublic) {
-      // If unauthenticated or not ADMIN and trying to access protected route, redirect to login
-      router.replace(`/login?returnUrl=${encodeURIComponent(pathname)}`);
+      // Unauthenticated non-admin accessing protected dashboard -> route to login
+      router.replace(`/login?returnUrl=${encodeURIComponent(safePathname)}`);
     }
-  }, [user, isPublic, pathname, router]);
+  }, [user, isPublic, safePathname, router]);
 
   useEffect(() => {
     if (isIntroComplete && !isLoading && !user && !isPublic) {
-      router.replace(`/login?returnUrl=${encodeURIComponent(pathname)}`);
+      router.replace(`/login?returnUrl=${encodeURIComponent(safePathname)}`);
     }
-  }, [isIntroComplete, isLoading, user, isPublic, pathname, router]);
+  }, [isIntroComplete, isLoading, user, isPublic, safePathname, router]);
 
-  // 1. Initial Intro Splash Screen
-  if (!isIntroComplete) {
-    return <IntroScreen onComplete={handleIntroComplete} />;
-  }
+  return (
+    <>
+      {/* Intro Splash Screen Overlay */}
+      {!isIntroComplete && <IntroScreen onComplete={handleIntroComplete} />}
 
-  // 2. Allow public paths without auth
-  if (isPublic) {
-    return <>{children}</>;
-  }
-
-  // 3. Auth loading state
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-purple-400/20 border-t-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]" />
-          <span className="font-mono text-xs text-violet-200/80">
-            Xác thực phiên quản trị Central Gateway...
-          </span>
+      {/* Main App Content Flow */}
+      {isPublic ? (
+        children
+      ) : isLoading ? (
+        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-10 w-10 animate-spin rounded-full border-2 border-purple-400/20 border-t-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]" />
+            <span className="font-mono text-xs text-violet-200/80">
+              Xác thực phiên quản trị Central Gateway...
+            </span>
+          </div>
         </div>
-      </div>
-    );
-  }
-
-  // 4. Redirecting unauthenticated user
-  if (!user) {
-    return (
-      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
-        <div className="flex flex-col items-center gap-3 text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-purple-400/20 border-t-purple-400" />
-          <p className="text-xs text-violet-200/70 font-mono">
-            Đang chuyển hướng đến trang đăng nhập...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // 5. User is logged in but role is NOT ADMIN
-  if (user.role !== 'ADMIN') {
-    return (
-      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
-        <div className="w-full max-w-[480px]">
-          <GlassCard className="p-8 sm:p-10 text-center border-rose-500/30 shadow-[0_12px_45px_rgba(244,63,94,0.25)]">
-            {/* Warning Icon Badge */}
-            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-rose-500/40 bg-rose-500/15 text-rose-300 shadow-[0_0_25px_rgba(244,63,94,0.35)]">
-              <ShieldAlert className="h-8 w-8" />
-            </div>
-
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/40 bg-rose-500/15 px-3 py-1 text-xs font-semibold text-rose-200 backdrop-blur-md">
-              <Sparkles className="h-3.5 w-3.5 text-rose-300" />
-              <span>Yêu cầu quyền Administrator</span>
-            </div>
-
-            <h1 className="mt-4 text-2xl font-bold tracking-tight text-white drop-shadow-sm">
-              Quyền Truy Cập Bị Giới Hạn
-            </h1>
-
-            <p className="mt-3 text-xs leading-relaxed text-violet-200/80">
-              Tài khoản hiện tại của bạn không có quyền quản trị viên (Admin). Bảng điều khiển
-              Central Gateway và cấu hình SSO chỉ dành riêng cho Administrator của hệ sinh thái.
+      ) : !user ? (
+        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
+          <div className="flex flex-col items-center gap-3 text-center">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-purple-400/20 border-t-purple-400" />
+            <p className="text-xs text-violet-200/70 font-mono">
+              Đang chuyển hướng đến trang đăng nhập...
             </p>
-
-            {/* Account Info Pill */}
-            <div className="mt-5 rounded-2xl border border-white/15 bg-white/[0.06] p-4 text-left font-mono text-xs backdrop-blur-md">
-              <div className="flex items-center justify-between py-1 border-b border-white/10">
-                <span className="text-violet-300/60">Tài khoản:</span>
-                <span className="font-semibold text-white">@{user.username}</span>
-              </div>
-              <div className="flex items-center justify-between py-1 border-b border-white/10">
-                <span className="text-violet-300/60">Email:</span>
-                <span className="text-white/80">{user.email || 'Chưa liên kết'}</span>
-              </div>
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-violet-300/60">Vai trò hiện tại:</span>
-                <span className="rounded-full border border-amber-500/30 bg-amber-500/15 px-2 py-0.5 text-[11px] font-bold text-amber-300">
-                  {user.role}
-                </span>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="mt-6 flex flex-col gap-3">
-              <GlassButton variant="primary" onClick={() => logout()} className="w-full gap-2 py-3">
-                <LogOut className="h-4 w-4" />
-                <span>Đăng xuất &amp; Đổi tài khoản Admin</span>
-              </GlassButton>
-
-              <a
-                href={process.env.NEXT_PUBLIC_WONDERLAB_URL || 'http://localhost:4200'}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex w-full items-center justify-center gap-1.5 rounded-2xl border border-white/20 bg-white/10 py-2.5 text-xs font-semibold text-violet-200 transition-all hover:bg-white/20 hover:text-white"
-              >
-                <span>Quay lại Wonderlab</span>
-                <ExternalLink className="h-3.5 w-3.5" />
-              </a>
-            </div>
-          </GlassCard>
+          </div>
         </div>
-      </div>
-    );
-  }
+      ) : user.role !== 'ADMIN' ? (
+        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
+          <div className="w-full max-w-[480px]">
+            <GlassCard className="p-8 sm:p-10 text-center border-rose-500/30 shadow-[0_12px_45px_rgba(244,63,94,0.25)]">
+              {/* Warning Icon Badge */}
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-rose-500/40 bg-rose-500/15 text-rose-300 shadow-[0_0_25px_rgba(244,63,94,0.35)]">
+                <ShieldAlert className="h-8 w-8" />
+              </div>
 
-  // 6. User is verified ADMIN
-  return <>{children}</>;
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-rose-500/40 bg-rose-500/15 px-3 py-1 text-xs font-semibold text-rose-200 backdrop-blur-md">
+                <Sparkles className="h-3.5 w-3.5 text-rose-300" />
+                <span>Yêu cầu quyền Administrator</span>
+              </div>
+
+              <h1 className="mt-4 text-2xl font-bold tracking-tight text-white drop-shadow-sm">
+                Quyền Truy Cập Bị Giới Hạn
+              </h1>
+
+              <p className="mt-3 text-xs leading-relaxed text-violet-200/80">
+                Tài khoản hiện tại của bạn không có quyền quản trị viên (Admin). Bảng điều khiển
+                Central Gateway và cấu hình SSO chỉ dành riêng cho Administrator của hệ sinh thái.
+              </p>
+
+              {/* Account Info Pill */}
+              <div className="mt-5 rounded-2xl border border-white/15 bg-white/[0.06] p-4 text-left font-mono text-xs backdrop-blur-md">
+                <div className="flex items-center justify-between py-1 border-b border-white/10">
+                  <span className="text-violet-300/60">Tài khoản:</span>
+                  <span className="font-semibold text-white">@{user.username}</span>
+                </div>
+                <div className="flex items-center justify-between py-1 border-b border-white/10">
+                  <span className="text-violet-300/60">Email:</span>
+                  <span className="text-white/80">{user.email || 'Chưa liên kết'}</span>
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-violet-300/60">Vai trò hiện tại:</span>
+                  <span className="rounded-full border border-amber-500/30 bg-amber-500/15 px-2 py-0.5 text-[11px] font-bold text-amber-300">
+                    {user.role}
+                  </span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="mt-6 flex flex-col gap-3">
+                <GlassButton
+                  variant="primary"
+                  onClick={() => logout()}
+                  className="w-full gap-2 py-3"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Đăng xuất &amp; Đổi tài khoản Admin</span>
+                </GlassButton>
+
+                <a
+                  href={process.env.NEXT_PUBLIC_WONDERLAB_URL || 'http://localhost:4200'}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex w-full items-center justify-center gap-1.5 rounded-2xl border border-white/20 bg-white/10 py-2.5 text-xs font-semibold text-violet-200 transition-all hover:bg-white/20 hover:text-white"
+                >
+                  <span>Quay lại Wonderlab</span>
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </div>
+            </GlassCard>
+          </div>
+        </div>
+      ) : (
+        children
+      )}
+    </>
+  );
 }
