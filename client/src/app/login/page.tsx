@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { User, Lock, Sparkles, ShieldAlert, LogOut } from 'lucide-react';
+import { User, Lock, Sparkles, ShieldAlert, LogOut, Database } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlassInput } from '@/components/ui/glass-input';
 import { GlassButton } from '@/components/ui/glass-button';
@@ -31,6 +31,8 @@ function LoginForm() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isGoogleChooserOpen, setIsGoogleChooserOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isDev = process.env.NODE_ENV !== 'production';
 
   // Auto-redirect if already logged in as Admin
   useEffect(() => {
@@ -97,19 +99,43 @@ function LoginForm() {
     setIsGoogleChooserOpen(true);
   };
 
-  const handleSelectAccount = async (account: { email: string; name: string }) => {
+  const handleSelectAccount = async (account: {
+    username: string;
+    email: string;
+    name: string;
+  }) => {
     setError(null);
     setIsGoogleLoading(true);
 
     try {
-      const res = await loginWithGoogle({
+      // 1. Thử đăng nhập qua API chuẩn kèm devBypass
+      const res = await fetch('/api/proxy/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: account.username,
+          password: '',
+          devBypass: true,
+          rememberMe: true,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.user) {
+        setIsGoogleChooserOpen(false);
+        await handleAuthSuccess(data.user);
+        return;
+      }
+
+      // 2. Fallback sang Google login nếu là tài khoản custom không có trong DB
+      const gRes = await loginWithGoogle({
         email: account.email.trim(),
         name: account.name,
         googleId: `google_${Date.now()}`,
       });
 
       setIsGoogleChooserOpen(false);
-      await handleAuthSuccess(res.user);
+      await handleAuthSuccess(gRes.user);
     } catch (err) {
       setError(err instanceof Error ? err.message : dict.auth.google_fail);
     } finally {
@@ -171,6 +197,19 @@ function LoginForm() {
             <div className="mb-6 rounded-2xl border border-rose-500/40 bg-rose-500/15 p-3 text-center text-xs font-medium text-rose-200 backdrop-blur-sm">
               {error}
             </div>
+          )}
+
+          {/* Local Dev: Quick Login from DB */}
+          {isDev && (
+            <button
+              type="button"
+              onClick={() => setIsGoogleChooserOpen(true)}
+              disabled={isLoading || isGoogleLoading}
+              className="w-full mb-4 flex items-center justify-center gap-2 rounded-2xl border border-amber-400/40 bg-amber-500/15 px-4 py-2.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 hover:border-amber-400/60 transition shadow-sm cursor-pointer disabled:opacity-50"
+            >
+              <Database className="h-4 w-4 text-amber-300" />
+              Chọn tài khoản trong DB để test (Local Dev)
+            </button>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">

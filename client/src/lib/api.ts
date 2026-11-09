@@ -70,6 +70,15 @@ export interface CurrentUser {
   createdAt: string;
 }
 
+export interface DevDbUser {
+  id: string;
+  username: string;
+  email: string | null;
+  role: 'ADMIN' | 'USER';
+  avatarUrl?: string | null;
+  isActive?: boolean;
+}
+
 export function getGatewaySecretKey(): string {
   if (typeof window === 'undefined') return '';
   return localStorage.getItem('central_gateway_secret_key') || '';
@@ -206,6 +215,10 @@ export const api = {
   // Auth & Session
   async getProfile(): Promise<{ user: CurrentUser | null }> {
     return request<{ user: CurrentUser | null }>('/auth/me');
+  },
+
+  async getDevUsers(): Promise<DevDbUser[]> {
+    return request<DevDbUser[]>('/auth/dev/users');
   },
 
   async logout(): Promise<{ success: boolean }> {
