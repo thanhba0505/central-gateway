@@ -3,15 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  FolderGit2,
-  Key,
-  LayoutDashboard,
-  Terminal,
-  FlaskConical,
-  LogIn,
-  LogOut,
-} from 'lucide-react';
+import { FolderGit2, Key, LayoutDashboard, Terminal, LogIn, LogOut } from 'lucide-react';
 import { api, SystemHealth } from '../lib/api';
 import { useAuth } from '../lib/auth-context';
 import { KeyModal } from './key-modal';
@@ -46,7 +38,6 @@ export function Navigation() {
     { name: 'Overview', href: '/', icon: LayoutDashboard },
     { name: 'Projects & Routing', href: '/projects', icon: FolderGit2 },
     { name: 'Dispatch Logs', href: '/logs', icon: Terminal },
-    { name: 'Sandbox Simulator', href: '/sandbox', icon: FlaskConical },
   ];
 
   return (

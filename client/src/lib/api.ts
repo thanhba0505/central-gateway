@@ -191,19 +191,6 @@ export const api = {
     return request<LogsResponse>(`/logs${qs ? `?${qs}` : ''}`);
   },
 
-  // Sandbox Test Dispatch
-  async sendTestNotification(data: {
-    project: string;
-    eventType?: string;
-    channelId?: string;
-    message: string;
-  }): Promise<Record<string, unknown>> {
-    return request<Record<string, unknown>>('/notifications/slack/test', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
   // Health probe
   async checkHealth(): Promise<SystemHealth> {
     const start = Date.now();

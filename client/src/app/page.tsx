@@ -9,17 +9,13 @@ import {
   CheckCircle2,
   Database,
   Flame,
-  FlaskConical,
   FolderGit2,
-  LogIn,
   RefreshCw,
   ShieldCheck,
-  Sparkles,
   Terminal,
 } from 'lucide-react';
 import { Navigation } from '../components/navigation';
 import { GlassCard } from '../components/ui/glass-card';
-import { GlassButton } from '../components/ui/glass-button';
 import { api, Project, LogsResponse } from '../lib/api';
 
 export default function HomePage() {
@@ -62,51 +58,28 @@ export default function HomePage() {
 
       {/* Main Content Area */}
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6">
-        {/* Hero Section */}
-        <div className="relative mb-10 overflow-hidden rounded-3xl border border-white/20 bg-white/[0.06] p-8 shadow-[0_12px_45px_rgba(88,28,135,0.35)] backdrop-blur-2xl sm:p-12">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div className="max-w-2xl space-y-3">
-              <div className="inline-flex items-center gap-2 rounded-full border border-purple-400/40 bg-purple-500/15 px-3.5 py-1 text-xs font-semibold text-purple-200 backdrop-blur-md">
-                <Sparkles className="h-3.5 w-3.5 text-purple-300" />
-                <span>Central IAM & Cloud Platform Hub</span>
-              </div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-white drop-shadow-sm sm:text-4xl lg:text-5xl">
-                Ecosystem Control Plane
-              </h1>
-              <p className="text-sm leading-relaxed text-violet-200/80 sm:text-base">
-                Unified Single Sign-On (SSO) identity access management, intelligent
-                cross-application Slack notification routing, and live telemetry observability for
-                Wonderlab and all sub-apps.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <Link href="/login">
-                <GlassButton
-                  variant="primary"
-                  className="gap-2 shadow-[0_0_25px_rgba(255,255,255,0.5)]"
-                >
-                  <LogIn className="h-4 w-4" />
-                  <span>SSO Login Hub</span>
-                </GlassButton>
-              </Link>
-              <Link href="/sandbox">
-                <GlassButton variant="glass" className="gap-2">
-                  <FlaskConical className="h-4 w-4 text-purple-300" />
-                  <span>Open Sandbox</span>
-                </GlassButton>
-              </Link>
-              <button
-                onClick={handleManualRefresh}
-                disabled={refreshing}
-                aria-label="Refresh platform metrics"
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/10 text-violet-200 transition-all hover:bg-white/20 hover:text-white disabled:opacity-50"
-              >
-                <RefreshCw
-                  className={`h-4 w-4 ${refreshing ? 'animate-spin text-purple-300' : ''}`}
-                />
-              </button>
-            </div>
+        {/* Top Header & Refresh Action */}
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-white drop-shadow-sm sm:text-3xl">
+              Bảng điều khiển Gateway
+            </h1>
+            <p className="mt-1 text-xs text-violet-200/70 sm:text-sm">
+              Quản trị định tuyến thông báo Slack, phiên SSO và nhật ký điều phối hệ sinh thái
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleManualRefresh}
+              disabled={refreshing}
+              aria-label="Refresh platform metrics"
+              className="flex h-10 items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 text-xs font-semibold text-violet-200 backdrop-blur-md transition-all hover:bg-white/20 hover:text-white disabled:opacity-50"
+            >
+              <RefreshCw
+                className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin text-purple-300' : ''}`}
+              />
+              <span>{refreshing ? 'Đang cập nhật...' : 'Làm mới'}</span>
+            </button>
           </div>
         </div>
 
@@ -385,25 +358,6 @@ export default function HomePage() {
                     );
                   })
                 )}
-              </div>
-            </GlassCard>
-
-            {/* Quick Sandbox Link Card */}
-            <GlassCard className="p-6">
-              <div className="flex items-center gap-2 text-sm font-semibold text-purple-300">
-                <FlaskConical className="h-4 w-4" />
-                Notification Sandbox
-              </div>
-              <p className="mt-2 text-xs leading-relaxed text-violet-200/80">
-                Test your Slack notification Block Kit templates or verify live delivery before
-                deploying updates.
-              </p>
-              <div className="mt-5">
-                <Link href="/sandbox">
-                  <GlassButton variant="primary" className="w-full text-xs">
-                    Launch Simulator <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                  </GlassButton>
-                </Link>
               </div>
             </GlassCard>
           </div>
