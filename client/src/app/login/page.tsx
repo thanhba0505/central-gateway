@@ -10,6 +10,7 @@ import { GlassButton } from '@/components/ui/glass-button';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { useAuth } from '@/lib/auth-context';
 import { useTranslation } from '@/i18n';
+import { GoogleAccountChooserModal } from '@/components/google-account-chooser-modal';
 
 function LoginForm() {
   const router = useRouter();
@@ -28,6 +29,7 @@ function LoginForm() {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isGoogleChooserOpen, setIsGoogleChooserOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Auto-redirect if already logged in as Admin
@@ -90,24 +92,23 @@ function LoginForm() {
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleLogin = () => {
+    setError(null);
+    setIsGoogleChooserOpen(true);
+  };
+
+  const handleSelectAccount = async (account: { email: string; name: string }) => {
     setError(null);
     setIsGoogleLoading(true);
 
     try {
-      const simulatedEmail = window.prompt(dict.auth.google_prompt, 'admin@wonderlab.local');
-
-      if (!simulatedEmail) {
-        setIsGoogleLoading(false);
-        return;
-      }
-
       const res = await loginWithGoogle({
-        email: simulatedEmail.trim(),
-        name: simulatedEmail.split('@')[0],
+        email: account.email.trim(),
+        name: account.name,
         googleId: `google_${Date.now()}`,
       });
 
+      setIsGoogleChooserOpen(false);
       await handleAuthSuccess(res.user);
     } catch (err) {
       setError(err instanceof Error ? err.message : dict.auth.google_fail);
@@ -295,6 +296,13 @@ function LoginForm() {
           </div>
         </GlassCard>
       </div>
+
+      <GoogleAccountChooserModal
+        isOpen={isGoogleChooserOpen}
+        onClose={() => setIsGoogleChooserOpen(false)}
+        onSelectAccount={handleSelectAccount}
+        appName={clientId === 'wonderlab' ? 'Wonderlab' : 'Central Gateway'}
+      />
     </div>
   );
 }
