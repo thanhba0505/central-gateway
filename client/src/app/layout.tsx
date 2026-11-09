@@ -4,7 +4,7 @@ import { StarfieldCanvas } from '@/components/starfield-canvas';
 import { PineForestBackdrop } from '@/components/pine-forest-backdrop';
 import { AuthProvider } from '@/lib/auth-context';
 import { AdminGuard } from '@/components/admin-guard';
-import { Footer } from '@/components/footer';
+import { AppShell } from '@/components/app-shell';
 
 export const metadata: Metadata = {
   title: 'Central Gateway — SSO & Platform Hub',
@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className="relative min-h-screen bg-gradient-to-b from-[#130624] via-[#260c46] to-[#421469] text-white antialiased selection:bg-purple-500 selection:text-white">
+      <body className="relative h-screen overflow-hidden bg-gradient-to-b from-[#130624] via-[#260c46] to-[#421469] text-white antialiased selection:bg-purple-500 selection:text-white">
         {/* Dynamic Starfield Canvas */}
         <StarfieldCanvas />
 
@@ -27,12 +27,9 @@ export default function RootLayout({
 
         {/* Application Content */}
         <AuthProvider>
-          <AdminGuard>
-            <div className="relative z-10 flex min-h-screen flex-col">
-              <div className="flex-1">{children}</div>
-              <Footer />
-            </div>
-          </AdminGuard>
+          <AppShell>
+            <AdminGuard>{children}</AdminGuard>
+          </AppShell>
         </AuthProvider>
       </body>
     </html>

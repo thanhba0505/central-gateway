@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { FolderGit2, Plus, Trash2, Edit2, X, RefreshCw, AlertCircle, Sparkles } from 'lucide-react';
-import { Navigation } from '../../components/navigation';
 import { GlassCard } from '../../components/ui/glass-card';
 import { GlassButton } from '../../components/ui/glass-button';
 import { api, Project, ChannelMapping } from '../../lib/api';
@@ -133,181 +132,174 @@ export default function ProjectsPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-transparent font-sans text-white">
-      <Navigation />
-
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6">
-        {/* Page Header */}
-        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-purple-400/30 bg-purple-500/15 px-3 py-0.5 text-xs font-semibold text-purple-200">
-              <Sparkles className="h-3 w-3 text-purple-300" />
-              <span>Ecosystem Application Registry</span>
-            </div>
-            <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
-              Projects & Channel Routing
-            </h1>
-            <p className="mt-1 text-sm text-violet-200/80">
-              Register child applications, manage OAuth credentials, and bind event scopes to Slack
-              channels.
-            </p>
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+      {/* Page Header */}
+      <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-purple-400/30 bg-purple-500/15 px-3 py-0.5 text-xs font-semibold text-purple-200">
+            <Sparkles className="h-3 w-3 text-purple-300" />
+            <span>Ecosystem Application Registry</span>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              aria-label="Refresh project list"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-violet-200 transition-all hover:bg-white/20 hover:text-white disabled:opacity-50"
-            >
-              <RefreshCw
-                className={`h-4 w-4 ${refreshing ? 'animate-spin text-purple-300' : ''}`}
-              />
-            </button>
-            <GlassButton
-              variant="primary"
-              onClick={() => setIsNewProjectOpen(true)}
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Register Project</span>
-            </GlassButton>
-          </div>
+          <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+            Projects & Channel Routing
+          </h1>
+          <p className="mt-1 text-sm text-violet-200/80">
+            Register child applications, manage OAuth credentials, and bind event scopes to Slack
+            channels.
+          </p>
         </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            aria-label="Refresh project list"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-violet-200 transition-all hover:bg-white/20 hover:text-white disabled:opacity-50"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin text-purple-300' : ''}`} />
+          </button>
+          <GlassButton
+            variant="primary"
+            onClick={() => setIsNewProjectOpen(true)}
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Register Project</span>
+          </GlassButton>
+        </div>
+      </div>
 
-        {/* Project List */}
-        {loading ? (
-          <GlassCard className="p-12 text-center font-mono text-sm text-violet-300/60">
-            Loading registered applications...
-          </GlassCard>
-        ) : projects.length === 0 ? (
-          <GlassCard className="p-12 text-center">
-            <FolderGit2 className="mx-auto mb-3 h-10 w-10 text-violet-300/40" />
-            <h3 className="text-base font-semibold text-white">No applications found</h3>
-            <p className="mt-1 text-sm text-violet-200/70">
-              Register your first project to start routing notifications and issuing SSO
-              credentials.
-            </p>
-          </GlassCard>
-        ) : (
-          <div className="space-y-6">
-            {projects.map((proj) => (
-              <GlassCard key={proj.id} className="overflow-hidden p-0">
-                {/* Project Header Bar */}
-                <div className="flex flex-col justify-between gap-4 border-b border-white/15 bg-white/[0.04] px-6 py-5 sm:flex-row sm:items-center">
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/25 bg-gradient-to-tr from-purple-700/60 to-indigo-600/50 font-mono text-lg font-bold text-white shadow-[0_0_15px_rgba(168,85,247,0.35)]">
-                      {proj.slug.slice(0, 1).toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h2 className="text-base font-bold text-white">{proj.name}</h2>
-                        <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-0.5 font-mono text-xs text-violet-200">
-                          {proj.slug}
-                        </span>
-                        <span
-                          className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] ${
-                            proj.isActive
-                              ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-300'
-                              : 'border-white/15 bg-white/10 text-white/50'
-                          }`}
-                        >
-                          {proj.isActive ? 'Active' : 'Disabled'}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-xs text-violet-200/70">
-                        {proj.description || 'Central platform module'}
-                      </p>
-                    </div>
+      {/* Project List */}
+      {loading ? (
+        <GlassCard className="p-12 text-center font-mono text-sm text-violet-300/60">
+          Loading registered applications...
+        </GlassCard>
+      ) : projects.length === 0 ? (
+        <GlassCard className="p-12 text-center">
+          <FolderGit2 className="mx-auto mb-3 h-10 w-10 text-violet-300/40" />
+          <h3 className="text-base font-semibold text-white">No applications found</h3>
+          <p className="mt-1 text-sm text-violet-200/70">
+            Register your first project to start routing notifications and issuing SSO credentials.
+          </p>
+        </GlassCard>
+      ) : (
+        <div className="space-y-6">
+          {projects.map((proj) => (
+            <GlassCard key={proj.id} className="overflow-hidden p-0">
+              {/* Project Header Bar */}
+              <div className="flex flex-col justify-between gap-4 border-b border-white/15 bg-white/[0.04] px-6 py-5 sm:flex-row sm:items-center">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/25 bg-gradient-to-tr from-purple-700/60 to-indigo-600/50 font-mono text-lg font-bold text-white shadow-[0_0_15px_rgba(168,85,247,0.35)]">
+                    {proj.slug.slice(0, 1).toUpperCase()}
                   </div>
-
-                  <div className="flex items-center gap-2.5">
-                    <button
-                      onClick={() => handleToggleStatus(proj)}
-                      className={`rounded-full border px-3.5 py-1.5 font-mono text-xs transition-colors ${
-                        proj.isActive
-                          ? 'border-white/20 bg-white/10 text-violet-200 hover:bg-white/20 hover:text-white'
-                          : 'border-emerald-500/30 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
-                      }`}
-                    >
-                      {proj.isActive ? 'Deactivate' : 'Activate'}
-                    </button>
-                    <GlassButton
-                      variant="glass"
-                      onClick={() => openChannelModal(proj.id)}
-                      className="gap-1.5 py-1.5 text-xs text-purple-200"
-                    >
-                      <Plus className="h-3.5 w-3.5 text-purple-300" />
-                      <span>Map Channel</span>
-                    </GlassButton>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="text-base font-bold text-white">{proj.name}</h2>
+                      <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-0.5 font-mono text-xs text-violet-200">
+                        {proj.slug}
+                      </span>
+                      <span
+                        className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] ${
+                          proj.isActive
+                            ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-300'
+                            : 'border-white/15 bg-white/10 text-white/50'
+                        }`}
+                      >
+                        {proj.isActive ? 'Active' : 'Disabled'}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-violet-200/70">
+                      {proj.description || 'Central platform module'}
+                    </p>
                   </div>
                 </div>
 
-                {/* Mapped Channels Table */}
-                <div className="p-6">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left font-mono text-xs">
-                      <thead>
-                        <tr className="border-b border-white/15 text-[11px] uppercase tracking-wider text-violet-300/60">
-                          <th className="pb-3 font-medium">Event Scope</th>
-                          <th className="pb-3 font-medium">Slack Channel</th>
-                          <th className="pb-3 font-medium">Channel ID</th>
-                          <th className="pb-3 font-medium">Provider</th>
-                          <th className="pb-3 text-right font-medium">Actions</th>
+                <div className="flex items-center gap-2.5">
+                  <button
+                    onClick={() => handleToggleStatus(proj)}
+                    className={`rounded-full border px-3.5 py-1.5 font-mono text-xs transition-colors ${
+                      proj.isActive
+                        ? 'border-white/20 bg-white/10 text-violet-200 hover:bg-white/20 hover:text-white'
+                        : 'border-emerald-500/30 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
+                    }`}
+                  >
+                    {proj.isActive ? 'Deactivate' : 'Activate'}
+                  </button>
+                  <GlassButton
+                    variant="glass"
+                    onClick={() => openChannelModal(proj.id)}
+                    className="gap-1.5 py-1.5 text-xs text-purple-200"
+                  >
+                    <Plus className="h-3.5 w-3.5 text-purple-300" />
+                    <span>Map Channel</span>
+                  </GlassButton>
+                </div>
+              </div>
+
+              {/* Mapped Channels Table */}
+              <div className="p-6">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left font-mono text-xs">
+                    <thead>
+                      <tr className="border-b border-white/15 text-[11px] uppercase tracking-wider text-violet-300/60">
+                        <th className="pb-3 font-medium">Event Scope</th>
+                        <th className="pb-3 font-medium">Slack Channel</th>
+                        <th className="pb-3 font-medium">Channel ID</th>
+                        <th className="pb-3 font-medium">Provider</th>
+                        <th className="pb-3 text-right font-medium">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/10 text-violet-200">
+                      {proj.channels?.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="py-6 text-center text-violet-300/50">
+                            No channel mappings defined for this project. System defaults will be
+                            applied.
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/10 text-violet-200">
-                        {proj.channels?.length === 0 ? (
-                          <tr>
-                            <td colSpan={5} className="py-6 text-center text-violet-300/50">
-                              No channel mappings defined for this project. System defaults will be
-                              applied.
+                      ) : (
+                        proj.channels?.map((ch) => (
+                          <tr key={ch.id} className="transition-colors hover:bg-white/[0.05]">
+                            <td className="py-3">
+                              <span className="inline-flex items-center rounded-full border border-purple-400/30 bg-purple-500/20 px-2.5 py-0.5 font-bold uppercase text-purple-200">
+                                {ch.eventType}
+                              </span>
+                            </td>
+                            <td className="py-3 font-semibold text-white">{ch.channelName}</td>
+                            <td className="py-3 text-violet-300/70">{ch.channelId}</td>
+                            <td className="py-3">
+                              <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-0.5 text-violet-200">
+                                {ch.provider}
+                              </span>
+                            </td>
+                            <td className="py-3 text-right">
+                              <div className="inline-flex items-center gap-1.5">
+                                <button
+                                  onClick={() => openChannelModal(proj.id, ch)}
+                                  title="Edit channel mapping"
+                                  className="rounded-full p-1.5 text-violet-300/70 transition-colors hover:bg-white/10 hover:text-white"
+                                >
+                                  <Edit2 className="h-3.5 w-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteChannel(proj.id, ch.id)}
+                                  title="Remove channel mapping"
+                                  className="rounded-full p-1.5 text-violet-300/70 transition-colors hover:bg-rose-500/20 hover:text-rose-300"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
                             </td>
                           </tr>
-                        ) : (
-                          proj.channels?.map((ch) => (
-                            <tr key={ch.id} className="transition-colors hover:bg-white/[0.05]">
-                              <td className="py-3">
-                                <span className="inline-flex items-center rounded-full border border-purple-400/30 bg-purple-500/20 px-2.5 py-0.5 font-bold uppercase text-purple-200">
-                                  {ch.eventType}
-                                </span>
-                              </td>
-                              <td className="py-3 font-semibold text-white">{ch.channelName}</td>
-                              <td className="py-3 text-violet-300/70">{ch.channelId}</td>
-                              <td className="py-3">
-                                <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-0.5 text-violet-200">
-                                  {ch.provider}
-                                </span>
-                              </td>
-                              <td className="py-3 text-right">
-                                <div className="inline-flex items-center gap-1.5">
-                                  <button
-                                    onClick={() => openChannelModal(proj.id, ch)}
-                                    title="Edit channel mapping"
-                                    className="rounded-full p-1.5 text-violet-300/70 transition-colors hover:bg-white/10 hover:text-white"
-                                  >
-                                    <Edit2 className="h-3.5 w-3.5" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteChannel(proj.id, ch.id)}
-                                    title="Remove channel mapping"
-                                    className="rounded-full p-1.5 text-violet-300/70 transition-colors hover:bg-rose-500/20 hover:text-rose-300"
-                                  >
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
-              </GlassCard>
-            ))}
-          </div>
-        )}
-      </main>
+              </div>
+            </GlassCard>
+          ))}
+        </div>
+      )}
 
       {/* Modal 1: Register New Project */}
       {isNewProjectOpen && (
