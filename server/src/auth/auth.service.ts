@@ -16,7 +16,6 @@ import { GoogleLoginDto } from './dto/google-login.dto';
 import { OAuthTokenDto } from './dto/oauth.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateUserStatusDto } from './dto/update-status.dto';
-import { S2SService } from '../s2s/s2s.service';
 
 export interface SanitizedUser {
   id: string;
@@ -34,7 +33,6 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-    private readonly s2sService: S2SService,
   ) {}
 
   /**
@@ -317,19 +315,6 @@ export class AuthService {
     });
 
     const sanitized = this.sanitizeUser(updated);
-
-    // Fire-and-forget sync to all active sub-services configured for user sync
-    this.s2sService
-      .dispatchUserSync({
-        id: sanitized.id,
-        username: sanitized.username,
-        email: sanitized.email,
-        avatarUrl: sanitized.avatarUrl,
-        role: sanitized.role,
-        isActive: sanitized.isActive,
-      })
-      .catch(() => {});
-
     return sanitized;
   }
 
@@ -358,17 +343,7 @@ export class AuthService {
     });
 
     const sanitized = this.sanitizeUser(updated);
-
-    this.s2sService
-      .dispatchUserSync({
-        id: sanitized.id,
-        username: sanitized.username,
-        email: sanitized.email,
-        avatarUrl: sanitized.avatarUrl,
-        role: sanitized.role,
-        isActive: sanitized.isActive,
-      })
-      .catch(() => {});
+    return sanitized;
 
     return sanitized;
   }
@@ -433,17 +408,6 @@ export class AuthService {
       });
 
       const sanitized = this.sanitizeUser(user);
-      this.s2sService
-        .dispatchUserSync({
-          id: sanitized.id,
-          username: sanitized.username,
-          email: sanitized.email,
-          avatarUrl: sanitized.avatarUrl,
-          role: sanitized.role,
-          isActive: sanitized.isActive,
-        })
-        .catch(() => {});
-
       return sanitized;
     }
 
@@ -472,17 +436,6 @@ export class AuthService {
     });
 
     const sanitized = this.sanitizeUser(newUser);
-    this.s2sService
-      .dispatchUserSync({
-        id: sanitized.id,
-        username: sanitized.username,
-        email: sanitized.email,
-        avatarUrl: sanitized.avatarUrl,
-        role: sanitized.role,
-        isActive: sanitized.isActive,
-      })
-      .catch(() => {});
-
     return sanitized;
   }
 

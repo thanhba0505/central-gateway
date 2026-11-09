@@ -3,7 +3,6 @@ import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { S2SService } from '../s2s/s2s.service';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -14,7 +13,6 @@ describe('AuthService', () => {
     authCode: { create: jest.Mock; findUnique: jest.Mock; update: jest.Mock };
   };
   let jwtMock: { sign: jest.Mock; decode: jest.Mock };
-  let s2sMock: { dispatchUserSync: jest.Mock };
 
   beforeEach(async () => {
     prismaMock = {
@@ -45,16 +43,11 @@ describe('AuthService', () => {
       decode: jest.fn(),
     };
 
-    s2sMock = {
-      dispatchUserSync: jest.fn().mockResolvedValue([]),
-    };
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
         { provide: PrismaService, useValue: prismaMock },
         { provide: JwtService, useValue: jwtMock },
-        { provide: S2SService, useValue: s2sMock },
       ],
     }).compile();
 
@@ -157,7 +150,6 @@ describe('AuthService', () => {
           data: expect.objectContaining({ googleId: 'google_12345' }),
         }),
       );
-      expect(s2sMock.dispatchUserSync).toHaveBeenCalled();
     });
 
     it('should provision new user when email does not exist', async () => {
@@ -183,7 +175,6 @@ describe('AuthService', () => {
 
       expect(result.id).toBe('new-user-1');
       expect(prismaMock.user.create).toHaveBeenCalled();
-      expect(s2sMock.dispatchUserSync).toHaveBeenCalled();
     });
   });
 });
