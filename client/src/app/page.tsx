@@ -8,7 +8,6 @@ import {
   Bell,
   CheckCircle2,
   Database,
-  Flame,
   FolderGit2,
   RefreshCw,
   ShieldCheck,
@@ -169,215 +168,138 @@ export default function HomePage() {
       </div>
 
       {/* Two Columns Grid: Connected Projects & Live Event Stream */}
-      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-5">
-        {/* Left Column: Connected Projects (3 Cols) */}
-        <div className="space-y-6 lg:col-span-3">
-          <GlassCard className="overflow-hidden p-0">
-            <div className="flex items-center justify-between border-b border-white/15 px-6 py-4">
-              <div className="flex items-center gap-2.5">
-                <FolderGit2 className="h-4 w-4 text-purple-300" />
-                <h2 className="text-base font-semibold text-white">
-                  {dict.dashboard.connected_apps}
-                </h2>
-              </div>
-              <Link
-                href="/projects"
-                className="flex items-center gap-1 font-mono text-xs text-purple-300 transition-colors hover:text-white"
-              >
-                {dict.dashboard.view_all.replace('{count}', String(projects.length))}{' '}
-                <ArrowRight className="h-3 w-3" />
-              </Link>
+      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
+        {/* Left Column: Connected Projects */}
+        <GlassCard className="overflow-hidden p-0">
+          <div className="flex items-center justify-between border-b border-white/15 px-6 py-4">
+            <div className="flex items-center gap-2.5">
+              <FolderGit2 className="h-4 w-4 text-purple-300" />
+              <h2 className="text-base font-semibold text-white">
+                {dict.dashboard.connected_apps}
+              </h2>
             </div>
+            <Link
+              href="/projects"
+              className="flex items-center gap-1 font-mono text-xs text-purple-300 transition-colors hover:text-white"
+            >
+              {dict.dashboard.view_all.replace('{count}', String(projects.length))}{' '}
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
 
-            <div className="divide-y divide-white/10 p-3">
-              {loading ? (
-                <div className="p-8 text-center font-mono text-xs text-violet-300/60">
-                  {dict.dashboard.loading_projects}
+          <div className="divide-y divide-white/10 p-3">
+            {loading ? (
+              <div className="p-8 text-center font-mono text-xs text-violet-300/60">
+                {dict.dashboard.loading_projects}
+              </div>
+            ) : projects.length === 0 ? (
+              <div className="p-8 text-center text-xs text-violet-300/60">
+                {dict.dashboard.no_projects}
+              </div>
+            ) : (
+              projects.map((proj) => (
+                <div
+                  key={proj.id}
+                  className="flex items-center gap-3.5 rounded-2xl p-4 transition-colors hover:bg-white/[0.08]"
+                >
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-gradient-to-tr from-purple-700/50 to-indigo-600/40 font-mono text-lg font-bold text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+                    {proj.slug.slice(0, 1).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-semibold text-white">{proj.name}</h3>
+                    <p className="mt-1 text-xs text-violet-200/70">
+                      {proj.description || dict.dashboard.ecosystem_service}
+                    </p>
+                  </div>
                 </div>
-              ) : projects.length === 0 ? (
-                <div className="p-8 text-center text-xs text-violet-300/60">
-                  {dict.dashboard.no_projects}
-                </div>
-              ) : (
-                projects.map((proj) => (
+              ))
+            )}
+          </div>
+        </GlassCard>
+
+        {/* Right Column: Live Dispatch Stream */}
+        <GlassCard className="overflow-hidden p-0">
+          <div className="flex items-center justify-between border-b border-white/15 px-6 py-4">
+            <div className="flex items-center gap-2">
+              <Terminal className="h-4 w-4 text-purple-300" />
+              <h2 className="text-base font-semibold text-white">
+                {dict.dashboard.recent_dispatches}
+              </h2>
+            </div>
+            <Link
+              href="/logs"
+              className="flex items-center gap-1 font-mono text-xs text-purple-300 transition-colors hover:text-white"
+            >
+              {dict.dashboard.all_logs} <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
+
+          <div className="divide-y divide-white/10 p-3">
+            {loading ? (
+              <div className="p-8 text-center font-mono text-xs text-violet-300/60">
+                {dict.dashboard.streaming_activity}
+              </div>
+            ) : !logsData?.items || logsData.items.length === 0 ? (
+              <div className="p-8 text-center text-xs text-violet-300/60">
+                {dict.dashboard.no_dispatches}
+              </div>
+            ) : (
+              logsData.items.map((log) => {
+                const isSuccess = log.status === 'SUCCESS';
+                return (
                   <div
-                    key={proj.id}
-                    className="flex flex-col justify-between gap-4 rounded-2xl p-4 transition-colors hover:bg-white/[0.08] sm:flex-row sm:items-center"
+                    key={log.id}
+                    className="rounded-2xl p-3.5 transition-colors hover:bg-white/[0.08]"
                   >
-                    <div className="flex items-start gap-3.5">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-gradient-to-tr from-purple-700/50 to-indigo-600/40 font-mono text-lg font-bold text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]">
-                        {proj.slug.slice(0, 1).toUpperCase()}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`h-2 w-2 rounded-full ${
+                            isSuccess
+                              ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]'
+                              : 'bg-rose-500 shadow-[0_0_8px_#f43f5e]'
+                          }`}
+                        />
+                        <span className="font-mono text-xs font-bold uppercase text-white">
+                          {log.eventType}
+                        </span>
+                        <span className="rounded-full border border-white/15 bg-white/10 px-2 py-0.5 font-mono text-[10px] text-violet-200">
+                          {log.project?.slug || 'ecosystem'}
+                        </span>
                       </div>
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-sm font-semibold text-white">{proj.name}</h3>
-                          <span className="rounded-full border border-white/15 bg-white/10 px-2 py-0.5 font-mono text-[11px] text-violet-200">
-                            {proj.slug}
-                          </span>
-                          <span
-                            className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] ${
-                              proj.isActive
-                                ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-300'
-                                : 'border-white/15 bg-white/10 text-white/50'
-                            }`}
-                          >
-                            {proj.isActive ? dict.common.active : dict.common.disabled}
-                          </span>
-                        </div>
-                        <p className="mt-1 text-xs text-violet-200/70">
-                          {proj.description || dict.dashboard.ecosystem_service}
-                        </p>
-                        <div className="mt-2.5 flex flex-wrap gap-1.5">
-                          {proj.channels?.map((ch) => (
-                            <span
-                              key={ch.id}
-                              className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 px-2.5 py-0.5 font-mono text-[10px] text-violet-200"
-                            >
-                              <span className="text-purple-300">{ch.eventType}:</span>
-                              <span>{ch.channelName}</span>
-                            </span>
-                          ))}
-                        </div>
-                      </div>
+                      <span className="font-mono text-[10px] text-violet-300/60">
+                        {new Date(log.createdAt).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit',
+                        })}
+                      </span>
                     </div>
 
-                    <div className="flex items-end justify-between gap-1 text-right sm:flex-col sm:justify-center">
-                      <span className="font-mono text-xs font-semibold text-white">
-                        {dict.dashboard.events_count.replace(
-                          '{count}',
-                          String(proj._count?.logs || 0),
+                    <div className="mt-2 flex items-center justify-between font-mono text-xs text-violet-200/70">
+                      <span className="max-w-[180px] truncate">
+                        {log.error ? (
+                          <span className="text-rose-300">{log.error}</span>
+                        ) : (
+                          `${dict.dashboard.provider}: ${log.provider}`
                         )}
                       </span>
-                      <Link
-                        href={`/logs?project=${proj.slug}`}
-                        className="font-mono text-[11px] text-purple-300 hover:text-white hover:underline"
+                      <span
+                        className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
+                          isSuccess
+                            ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-300'
+                            : 'border-rose-500/30 bg-rose-500/15 text-rose-300'
+                        }`}
                       >
-                        {dict.dashboard.view_audit_logs}
-                      </Link>
+                        {log.status}
+                      </span>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
-          </GlassCard>
-
-          {/* Architecture Overview Card */}
-          <GlassCard className="p-6">
-            <h3 className="flex items-center gap-2 text-sm font-semibold text-white">
-              <Flame className="h-4 w-4 text-amber-300" />
-              {dict.dashboard.topology_title}
-            </h3>
-            <p className="mt-2 text-xs leading-relaxed text-violet-200/80">
-              {dict.dashboard.topology_desc}
-            </p>
-            <div className="mt-4 grid grid-cols-2 gap-3 font-mono text-xs sm:grid-cols-3">
-              <div className="rounded-2xl border border-white/15 bg-white/[0.06] p-3 backdrop-blur-md">
-                <span className="block text-[10px] text-violet-300/60">
-                  {dict.dashboard.sso_protocol}
-                </span>
-                <span className="mt-1 block truncate text-white">OAuth2 + PKCE</span>
-              </div>
-              <div className="rounded-2xl border border-white/15 bg-white/[0.06] p-3 backdrop-blur-md">
-                <span className="block text-[10px] text-violet-300/60">
-                  {dict.dashboard.backend_api}
-                </span>
-                <span className="mt-1 block truncate text-white">NestJS 10 REST</span>
-              </div>
-              <div className="rounded-2xl border border-white/15 bg-white/[0.06] p-3 backdrop-blur-md">
-                <span className="block text-[10px] text-violet-300/60">
-                  {dict.dashboard.notification}
-                </span>
-                <span className="mt-1 block truncate text-white">Slack Block Kit</span>
-              </div>
-            </div>
-          </GlassCard>
-        </div>
-
-        {/* Right Column: Live Dispatch Stream (2 Cols) */}
-        <div className="space-y-6 lg:col-span-2">
-          <GlassCard className="overflow-hidden p-0">
-            <div className="flex items-center justify-between border-b border-white/15 px-6 py-4">
-              <div className="flex items-center gap-2">
-                <Terminal className="h-4 w-4 text-purple-300" />
-                <h2 className="text-base font-semibold text-white">
-                  {dict.dashboard.recent_dispatches}
-                </h2>
-              </div>
-              <Link
-                href="/logs"
-                className="flex items-center gap-1 font-mono text-xs text-purple-300 transition-colors hover:text-white"
-              >
-                {dict.dashboard.all_logs} <ArrowRight className="h-3 w-3" />
-              </Link>
-            </div>
-
-            <div className="divide-y divide-white/10 p-3">
-              {loading ? (
-                <div className="p-8 text-center font-mono text-xs text-violet-300/60">
-                  {dict.dashboard.streaming_activity}
-                </div>
-              ) : !logsData?.items || logsData.items.length === 0 ? (
-                <div className="p-8 text-center text-xs text-violet-300/60">
-                  {dict.dashboard.no_dispatches}
-                </div>
-              ) : (
-                logsData.items.map((log) => {
-                  const isSuccess = log.status === 'SUCCESS';
-                  return (
-                    <div
-                      key={log.id}
-                      className="rounded-2xl p-3.5 transition-colors hover:bg-white/[0.08]"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={`h-2 w-2 rounded-full ${
-                              isSuccess
-                                ? 'bg-emerald-400 shadow-[0_0_8px_#34d399]'
-                                : 'bg-rose-500 shadow-[0_0_8px_#f43f5e]'
-                            }`}
-                          />
-                          <span className="font-mono text-xs font-bold uppercase text-white">
-                            {log.eventType}
-                          </span>
-                          <span className="rounded-full border border-white/15 bg-white/10 px-2 py-0.5 font-mono text-[10px] text-violet-200">
-                            {log.project?.slug || 'ecosystem'}
-                          </span>
-                        </div>
-                        <span className="font-mono text-[10px] text-violet-300/60">
-                          {new Date(log.createdAt).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit',
-                          })}
-                        </span>
-                      </div>
-
-                      <div className="mt-2 flex items-center justify-between font-mono text-xs text-violet-200/70">
-                        <span className="max-w-[180px] truncate">
-                          {log.error ? (
-                            <span className="text-rose-300">{log.error}</span>
-                          ) : (
-                            `${dict.dashboard.provider}: ${log.provider}`
-                          )}
-                        </span>
-                        <span
-                          className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
-                            isSuccess
-                              ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-300'
-                              : 'border-rose-500/30 bg-rose-500/15 text-rose-300'
-                          }`}
-                        >
-                          {log.status}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </GlassCard>
-        </div>
+                );
+              })
+            )}
+          </div>
+        </GlassCard>
       </div>
     </div>
   );
