@@ -19,11 +19,11 @@ export function AppShell({ children }: AppShellProps) {
       {/* Header (Pinned Top) */}
       {!isAuthPage && <Navigation />}
 
-      {/* Main Content Area (Bounded strictly between Header and Footer) */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">{children}</div>
-
-      {/* Footer (Pinned Bottom) */}
-      <Footer />
+      {/* Unified Scrollable Container: Main content and Footer scroll together */}
+      <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden custom-scrollbar">
+        <main className="flex flex-1 flex-col">{children}</main>
+        <Footer />
+      </div>
     </div>
   );
 }

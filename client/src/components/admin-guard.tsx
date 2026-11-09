@@ -50,7 +50,7 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
       {isPublic ? (
         children
       ) : isLoading ? (
-        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center">
+        <div className="flex flex-1 items-center justify-center">
           <div className="flex flex-col items-center gap-3">
             <div className="h-10 w-10 animate-spin rounded-full border-2 border-purple-400/20 border-t-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]" />
             <span className="font-mono text-xs text-violet-200/80">
@@ -59,14 +59,14 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       ) : !user ? (
-        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4">
+        <div className="flex flex-1 items-center justify-center px-4">
           <div className="flex flex-col items-center gap-3 text-center">
             <div className="h-8 w-8 animate-spin rounded-full border-2 border-purple-400/20 border-t-purple-400" />
             <p className="text-xs text-violet-200/70 font-mono">{dict.admin_guard.redirecting}</p>
           </div>
         </div>
       ) : user.role !== 'ADMIN' ? (
-        <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
+        <div className="flex flex-1 items-center justify-center px-4 py-12">
           <div className="w-full max-w-[480px]">
             <GlassCard className="p-8 sm:p-10 text-center border-rose-500/30 shadow-[0_12px_45px_rgba(244,63,94,0.25)]">
               {/* Warning Icon Badge */}
