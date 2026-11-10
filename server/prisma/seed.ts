@@ -97,7 +97,7 @@ async function main() {
     create: {
       slug: 'central-gateway',
       name: 'Central Gateway',
-      description: 'Centralized API & Notification Gateway for the ThanhBa ecosystem',
+      description: 'Centralized API & Notification Gateway for the Prism ecosystem',
     },
   });
 

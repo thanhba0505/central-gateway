@@ -53,7 +53,7 @@ export const vi: TranslationDictionary = {
     view_audit_logs: 'Xem nhật ký kiểm toán',
     topology_title: 'Kiến trúc Hạ tầng & Mô hình SSO',
     topology_desc:
-      'Central Gateway đóng vai trò là nguồn chân lý duy nhất (Single Source of Truth) cho xác thực danh tính SSO và phân phối thông báo trên toàn hệ sinh thái ThanhBa. Các ứng dụng con kết nối thông qua chuẩn OAuth2 Authorization Code PKCE, cho phép người dùng chỉ cần đăng nhập một lần và sử dụng liền mạch trên mọi dịch vụ.',
+      'Central Gateway đóng vai trò là nguồn chân lý duy nhất (Single Source of Truth) cho xác thực danh tính SSO và phân phối thông báo trên toàn hệ sinh thái Prism. Các ứng dụng con kết nối thông qua chuẩn OAuth2 Authorization Code PKCE, cho phép người dùng chỉ cần đăng nhập một lần và sử dụng liền mạch trên mọi dịch vụ.',
     sso_protocol: 'GIAO THỨC SSO',
     backend_api: 'API HỆ THỐNG',
     notification: 'HỆ THỐNG THÔNG BÁO',
@@ -68,7 +68,7 @@ export const vi: TranslationDictionary = {
     badge: 'Đăng ký Ứng dụng Hệ sinh thái',
     title: 'Ứng dụng & Định tuyến Kênh',
     subtitle:
-      'Quản lý các dịch vụ thành viên trong hệ sinh thái ThanhBa và bản đồ định tuyến webhook thông báo Slack',
+      'Quản lý các dịch vụ thành viên trong hệ sinh thái Prism và bản đồ định tuyến webhook thông báo Slack',
     register_btn: 'Đăng ký Ứng dụng Mới',
     loading: 'Đang tải danh sách ứng dụng...',
     no_projects: 'Chưa có ứng dụng nào được đăng ký trong hệ thống.',
@@ -173,7 +173,7 @@ export const vi: TranslationDictionary = {
     register_link: 'Đăng ký',
     login_link: 'Đăng nhập',
     register_title: 'Tạo Tài khoản Gateway',
-    register_subtitle: 'Tạo tài khoản hợp nhất trong hệ sinh thái ThanhBa',
+    register_subtitle: 'Tạo tài khoản hợp nhất trong hệ sinh thái Prism',
     register_btn: 'Đăng ký Tài khoản',
     registering: 'Đang xử lý...',
     passwords_mismatch: 'Mật khẩu xác nhận không khớp',
@@ -193,7 +193,7 @@ export const vi: TranslationDictionary = {
     back_to_wonderlab: 'Quay lại Wonderlab',
   },
   footer: {
-    console_title: 'ThanhBa Ecosystem — Central Gateway SSO & Platform Console',
+    console_title: 'Prism Ecosystem — Central Gateway SSO & Platform Console',
   },
   intro: {
     tagline: 'SSO IAM & PLATFORM HUB',

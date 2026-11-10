@@ -2,7 +2,7 @@
 
 ## 1. High-Level Topology
 
-Central Gateway serves as the centralized communications broker across the ThanhBa engineering ecosystem.
+Central Gateway serves as the centralized communications broker across the Prism engineering ecosystem.
 
 ```mermaid
 graph TD

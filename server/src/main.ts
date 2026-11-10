@@ -47,7 +47,7 @@ async function bootstrap() {
   const config = new DocumentBuilder()
     .setTitle('Central Gateway API & SSO IAM')
     .setDescription(
-      'Centralized Single Sign-On IAM Hub, notifications, and platform services for the ThanhBa ecosystem',
+      'Centralized Single Sign-On IAM Hub, notifications, and platform services for the Prism ecosystem',
     )
     .setVersion(process.env.npm_package_version || '0.2.1')
     .addBearerAuth()

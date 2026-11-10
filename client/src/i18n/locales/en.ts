@@ -53,7 +53,7 @@ export const en: TranslationDictionary = {
     view_audit_logs: 'View audit logs',
     topology_title: 'Infrastructure & SSO Topology',
     topology_desc:
-      'Central Gateway acts as the single source of truth for identity authentication and notification dispatch across all ThanhBa services. Applications connect via OAuth2 Authorization Code with PKCE, ensuring users log in once and enjoy frictionless access across all sub-apps.',
+      'Central Gateway acts as the single source of truth for identity authentication and notification dispatch across all Prism services. Applications connect via OAuth2 Authorization Code with PKCE, ensuring users log in once and enjoy frictionless access across all sub-apps.',
     sso_protocol: 'SSO PROTOCOL',
     backend_api: 'BACKEND API',
     notification: 'NOTIFICATION',
@@ -171,7 +171,7 @@ export const en: TranslationDictionary = {
     register_link: 'Register',
     login_link: 'Sign In',
     register_title: 'Register',
-    register_subtitle: 'Create your unified ThanhBa Ecosystem account',
+    register_subtitle: 'Create your unified Prism Ecosystem account',
     register_btn: 'Create Account',
     registering: 'Processing...',
     passwords_mismatch: 'Passwords do not match',
@@ -191,7 +191,7 @@ export const en: TranslationDictionary = {
     back_to_wonderlab: 'Back to Wonderlab',
   },
   footer: {
-    console_title: 'ThanhBa Ecosystem — Central Gateway SSO & Platform Console',
+    console_title: 'Prism Ecosystem — Central Gateway SSO & Platform Console',
   },
   intro: {
     tagline: 'SSO IAM & PLATFORM HUB',

@@ -6,7 +6,7 @@ Primary rules and engineering standards for AI coding assistants working in Cent
 
 ## 1. Project Overview & Mission
 
-- **Mission**: Central Gateway serves as the centralized **Single Sign-On (SSO) & Identity Access Management (IAM) Hub**, cross-platform notification broker, and cloud infrastructure control plane for the ThanhBa engineering ecosystem.
+- **Mission**: Central Gateway serves as the centralized **Single Sign-On (SSO) & Identity Access Management (IAM) Hub**, cross-platform notification broker, and cloud infrastructure control plane for the Prism engineering ecosystem.
 - **Monorepo Architecture**:
   - `client/`: Next.js 15 App Router, React 19, Tailwind CSS v4, Lucide React.
   - `server/`: NestJS 10 REST API, Prisma ORM, Neon Lakebase PostgreSQL.

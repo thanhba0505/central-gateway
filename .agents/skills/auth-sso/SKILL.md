@@ -5,7 +5,7 @@ description: Standards, protocols, and architectural specifications for Central 
 
 # Central Gateway SSO & IAM Architecture Standards
 
-This skill governs the implementation and maintenance of Central Gateway as the centralized Identity Provider (IdP) and Single Sign-On (SSO) broker for the ThanhBa engineering ecosystem.
+This skill governs the implementation and maintenance of Central Gateway as the centralized Identity Provider (IdP) and Single Sign-On (SSO) broker for the Prism engineering ecosystem.
 
 ---
 
