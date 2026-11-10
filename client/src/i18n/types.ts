@@ -107,6 +107,12 @@ export interface UsersDictionary {
   self_warning: string;
   update_success: string;
   update_failed: string;
+  actions: string;
+  save: string;
+  saving: string;
+  save_all: string;
+  cancel: string;
+  unsaved_changes: string;
 }
 
 export interface AuthDictionary {

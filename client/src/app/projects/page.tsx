@@ -1,16 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-  FolderGit2,
-  Plus,
-  X,
-  RefreshCw,
-  AlertCircle,
-  Sparkles,
-  CheckCircle2,
-  Shield,
-} from 'lucide-react';
+import { FolderGit2, Plus, X, RefreshCw, AlertCircle, Sparkles, Shield } from 'lucide-react';
 import { GlassCard } from '../../components/ui/glass-card';
 import { GlassButton } from '../../components/ui/glass-button';
 import { api, Project } from '../../lib/api';
@@ -71,17 +62,6 @@ export default function ProjectsPage() {
       setCreateError(err instanceof Error ? err.message : String(err));
     } finally {
       setCreatingProject(false);
-    }
-  };
-
-  const handleToggleStatus = async (project: Project) => {
-    try {
-      await api.updateProjectStatus(project.id, !project.isActive);
-      setProjects((prev) =>
-        prev.map((p) => (p.id === project.id ? { ...p, isActive: !p.isActive } : p)),
-      );
-    } catch (err) {
-      console.error('Failed to update project status:', err);
     }
   };
 
@@ -160,38 +140,10 @@ export default function ProjectsPage() {
                   <div>
                     <h3 className="text-lg font-bold text-white flex items-center gap-2">
                       {project.name}
-                      {project.isActive ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 font-mono text-[10px] text-emerald-300">
-                          <CheckCircle2 className="h-3 w-3" />
-                          {dict.common.active}
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/20 px-2 py-0.5 font-mono text-[10px] text-rose-300">
-                          {dict.common.disabled}
-                        </span>
-                      )}
                     </h3>
                     <p className="font-mono text-xs text-violet-300/80">slug: {project.slug}</p>
                   </div>
                 </div>
-
-                {/* Status Switch Toggle */}
-                <button
-                  onClick={() => handleToggleStatus(project)}
-                  type="button"
-                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                    project.isActive ? 'bg-emerald-500' : 'bg-slate-700'
-                  }`}
-                  role="switch"
-                  aria-checked={project.isActive}
-                  title={project.isActive ? dict.projects.deactivate : dict.projects.activate}
-                >
-                  <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                      project.isActive ? 'translate-x-5' : 'translate-x-0'
-                    }`}
-                  />
-                </button>
               </div>
 
               {/* Description */}

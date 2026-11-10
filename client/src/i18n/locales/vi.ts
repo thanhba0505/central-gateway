@@ -102,6 +102,12 @@ export const vi: TranslationDictionary = {
     self_warning: 'Không thể tự vô hiệu hóa hoặc thay đổi vai trò tài khoản của chính bạn.',
     update_success: 'Cập nhật thành công!',
     update_failed: 'Lỗi khi cập nhật người dùng',
+    actions: 'Thao tác',
+    save: 'Lưu',
+    saving: 'Đang lưu...',
+    save_all: 'Lưu thay đổi',
+    cancel: 'Hủy',
+    unsaved_changes: '{count} thay đổi chưa lưu',
   },
   auth: {
     title: 'Admin Gateway',

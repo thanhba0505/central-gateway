@@ -102,6 +102,12 @@ export const en: TranslationDictionary = {
     self_warning: 'You cannot deactivate or downgrade your own account.',
     update_success: 'User updated successfully!',
     update_failed: 'Failed to update user',
+    actions: 'Actions',
+    save: 'Save',
+    saving: 'Saving...',
+    save_all: 'Save changes',
+    cancel: 'Cancel',
+    unsaved_changes: '{count} unsaved changes',
   },
   auth: {
     title: 'Admin Gateway',
