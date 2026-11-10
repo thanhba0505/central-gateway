@@ -5,7 +5,6 @@ import {
   Patch,
   Param,
   Body,
-  Query,
   Req,
   Res,
   Headers,
@@ -15,19 +14,18 @@ import {
   HttpStatus,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService, SanitizedUser } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
-import { OAuthAuthorizeDto, OAuthTokenDto } from './dto/oauth.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateUserStatusDto } from './dto/update-status.dto';
 import { ApiKeyGuard } from './api-key.guard';
 
-@ApiTags('Authentication & SSO IAM')
+@ApiTags('Authentication & IAM')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -110,7 +108,7 @@ export class AuthController {
   }
 
   @Patch('profile')
-  @ApiOperation({ summary: 'Update current user profile and sync to connected services' })
+  @ApiOperation({ summary: 'Update current user profile' })
   async updateProfile(
     @Req() req: Request,
     @Body() dto: UpdateProfileDto,
@@ -155,57 +153,6 @@ export class AuthController {
     });
 
     return { success: true };
-  }
-
-  @Get('oauth/authorize')
-  @ApiOperation({ summary: 'OAuth2 PKCE authorization endpoint (SSO redirect broker)' })
-  async authorize(
-    @Query() query: OAuthAuthorizeDto,
-    @Req() req: Request,
-    @Res() res: Response,
-  ): Promise<void> {
-    const sessionToken = req.cookies?.['gateway_session'];
-    const user = sessionToken ? await this.authService.validateSession(sessionToken) : null;
-
-    if (!user) {
-      // Redirect to Cosmic Violet Login view with OAuth query preserved
-      const loginUrl = new URL('/login', `${req.protocol}://${req.get('host')}`);
-      loginUrl.searchParams.set('client_id', query.client_id);
-      loginUrl.searchParams.set('redirect_uri', query.redirect_uri);
-      loginUrl.searchParams.set('code_challenge', query.code_challenge);
-      if (query.state) loginUrl.searchParams.set('state', query.state);
-
-      res.redirect(loginUrl.toString());
-      return;
-    }
-
-    // Active session confirmed: Generate single-use authorization code immediately
-    const code = await this.authService.generateOAuthCode(
-      query.client_id,
-      user.id,
-      query.redirect_uri,
-      query.code_challenge,
-    );
-
-    const redirectUrl = new URL(query.redirect_uri);
-    redirectUrl.searchParams.set('code', code);
-    if (query.state) {
-      redirectUrl.searchParams.set('state', query.state);
-    }
-
-    res.redirect(redirectUrl.toString());
-  }
-
-  @Post('oauth/token')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Server-to-server authorization code exchange with PKCE' })
-  async exchangeToken(@Body() dto: OAuthTokenDto): Promise<{
-    access_token: string;
-    token_type: string;
-    expires_in: number;
-    user: SanitizedUser;
-  }> {
-    return this.authService.exchangeOAuthToken(dto);
   }
 
   @Get('oauth/userinfo')

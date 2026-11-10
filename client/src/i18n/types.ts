@@ -6,7 +6,7 @@ export const DEFAULT_LOCALE: Locale = 'vi';
 export interface NavDictionary {
   overview: string;
   projects: string;
-  logs: string;
+  users: string;
   login: string;
   logout: string;
   role: string;
@@ -78,17 +78,8 @@ export interface ProjectsDictionary {
   no_projects_desc: string;
   events_recorded: string;
   view_logs: string;
-  add_channel: string;
-  no_channels: string;
-  col_event_type: string;
-  col_channel_name: string;
-  col_channel_id: string;
-  col_provider: string;
-  col_actions: string;
   activate: string;
   deactivate: string;
-  edit_channel: string;
-  delete_channel: string;
   modal_register_title: string;
   field_slug: string;
   field_slug_placeholder: string;
@@ -97,54 +88,25 @@ export interface ProjectsDictionary {
   field_desc: string;
   field_desc_placeholder: string;
   field_active: string;
-  modal_channel_title: string;
-  field_event_type: string;
-  field_channel_id: string;
-  field_channel_id_desc: string;
-  field_channel_name: string;
-  save_mapping: string;
   delete_confirm: string;
 }
 
-export interface LogsDictionary {
+export interface UsersDictionary {
   badge: string;
   title: string;
   subtitle: string;
-  refresh_logs: string;
-  total_dispatches: string;
-  successful: string;
-  failures: string;
-  success_rate: string;
-  failed: string;
-  filters: string;
-  all_projects: string;
-  all_events: string;
-  clear_filters: string;
-  filter_project: string;
-  filter_status: string;
-  filter_event: string;
   search_placeholder: string;
-  col_timestamp: string;
-  col_project: string;
-  col_event_type: string;
-  col_provider: string;
-  col_channel: string;
-  col_status: string;
-  col_actions: string;
-  inspect_btn: string;
-  modal_title: string;
-  modal_project: string;
-  modal_event_scope: string;
-  modal_provider: string;
-  modal_dispatched_at: string;
-  modal_payload_title: string;
-  modal_response_title: string;
-  close_inspector: string;
-  tab_payload: string;
-  tab_response: string;
-  tab_metadata: string;
-  loading: string;
-  no_logs: string;
+  all_roles: string;
+  status: string;
+  role: string;
+  active: string;
+  inactive: string;
+  created_at: string;
+  no_users: string;
+  no_users_desc: string;
+  self_warning: string;
+  update_success: string;
+  update_failed: string;
 }
 
 export interface AuthDictionary {
@@ -206,7 +168,7 @@ export interface TranslationDictionary {
   common: CommonDictionary;
   dashboard: DashboardDictionary;
   projects: ProjectsDictionary;
-  logs: LogsDictionary;
+  users: UsersDictionary;
   auth: AuthDictionary;
   admin_guard: AdminGuardDictionary;
   footer: FooterDictionary;

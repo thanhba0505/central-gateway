@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import {
   FolderGit2,
   LayoutDashboard,
-  Terminal,
+  Users,
   LogIn,
   LogOut,
   ChevronDown,
@@ -51,7 +51,7 @@ export function Navigation() {
   const navItems = [
     { name: dict.nav.overview, href: '/', icon: LayoutDashboard },
     { name: dict.nav.projects, href: '/projects', icon: FolderGit2 },
-    { name: dict.nav.logs, href: '/logs', icon: Terminal },
+    { name: dict.nav.users, href: '/users', icon: Users },
   ];
 
   return (

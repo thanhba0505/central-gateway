@@ -45,7 +45,7 @@ async function main() {
     );
   }
 
-  // Create Wonderlab project
+  // 2. Create Wonderlab project
   const wonderlab = await prisma.project.upsert({
     where: { slug: 'wonderlab' },
     update: { name: 'Wonderlab Platform' },
@@ -60,37 +60,33 @@ async function main() {
 
   // Initial channel mappings for Wonderlab
   const channels = [
-    { eventType: 'deploy', channelId: 'C0CGL8EHU9E', channelName: '#deployments' },
-    { eventType: 'ci', channelId: 'C0CGL8EBFT2', channelName: '#ci-cd' },
-    { eventType: 'git', channelId: 'C0CFRUJUCSE', channelName: '#git-activity' },
-    { eventType: 'feedback', channelId: 'C0CFAFQH739', channelName: '#wonderlab-feedback' },
-    { eventType: 'comment', channelId: 'C0CFAFQRU2K', channelName: '#wonderlab-comments' },
+    { eventType: 'deploy', channelId: 'C0CGL8EHU9E' },
+    { eventType: 'ci', channelId: 'C0CGL8EBFT2' },
+    { eventType: 'git', channelId: 'C0CFRUJUCSE' },
+    { eventType: 'feedback', channelId: 'C0CFAFQH739' },
+    { eventType: 'comment', channelId: 'C0CFAFQRU2K' },
   ];
 
   for (const ch of channels) {
     await prisma.channelMapping.upsert({
       where: {
-        projectId_eventType_provider: {
+        projectId_eventType: {
           projectId: wonderlab.id,
           eventType: ch.eventType,
-          provider: 'slack',
         },
       },
       update: {
         channelId: ch.channelId,
-        channelName: ch.channelName,
       },
       create: {
         projectId: wonderlab.id,
         eventType: ch.eventType,
         channelId: ch.channelId,
-        channelName: ch.channelName,
-        provider: 'slack',
       },
     });
   }
 
-  // Create Central Gateway project
+  // 3. Create Central Gateway project
   const centralGateway = await prisma.project.upsert({
     where: { slug: 'central-gateway' },
     update: { name: 'Central Gateway' },
@@ -104,61 +100,31 @@ async function main() {
   console.log('Created or updated project:', centralGateway.name);
 
   const gatewayChannels = [
-    { eventType: 'deploy', channelId: 'C0CGL8EHU9E', channelName: '#deployments' },
-    { eventType: 'ci', channelId: 'C0CGL8EBFT2', channelName: '#ci-cd' },
-    { eventType: 'git', channelId: 'C0CFRUJUCSE', channelName: '#git-activity' },
+    { eventType: 'deploy', channelId: 'C0CGL8EHU9E' },
+    { eventType: 'ci', channelId: 'C0CGL8EBFT2' },
+    { eventType: 'git', channelId: 'C0CFRUJUCSE' },
   ];
 
   for (const ch of gatewayChannels) {
     await prisma.channelMapping.upsert({
       where: {
-        projectId_eventType_provider: {
+        projectId_eventType: {
           projectId: centralGateway.id,
           eventType: ch.eventType,
-          provider: 'slack',
         },
       },
       update: {
         channelId: ch.channelId,
-        channelName: ch.channelName,
       },
       create: {
         projectId: centralGateway.id,
         eventType: ch.eventType,
         channelId: ch.channelId,
-        channelName: ch.channelName,
-        provider: 'slack',
       },
     });
   }
 
-  // Register Wonderlab OAuth Client for SSO
-  await prisma.oAuthClient.upsert({
-    where: { clientId: 'wonderlab' },
-    update: {
-      name: 'Wonderlab Platform',
-      redirectUris: [
-        'http://localhost:4100/auth/callback',
-        'https://wonderlab.io.vn/auth/callback',
-        'https://www.wonderlab.io.vn/auth/callback',
-      ],
-      isActive: true,
-    },
-    create: {
-      clientId: 'wonderlab',
-      clientSecret: 'wonderlab_sso_secret',
-      name: 'Wonderlab Platform',
-      redirectUris: [
-        'http://localhost:4100/auth/callback',
-        'https://wonderlab.io.vn/auth/callback',
-        'https://www.wonderlab.io.vn/auth/callback',
-      ],
-      isActive: true,
-    },
-  });
-  console.log('Seeded Wonderlab OAuth client.');
-
-  // Register Wonderlab Service Connection
+  // 4. Register Wonderlab Service Connection
   await prisma.serviceConnection.upsert({
     where: { slug: 'wonderlab' },
     update: {
@@ -191,7 +157,7 @@ async function main() {
   });
   console.log('Seeded Wonderlab Service Connection.');
 
-  console.log('Successfully seeded channel mappings.');
+  console.log('Successfully seeded database.');
 }
 
 main()

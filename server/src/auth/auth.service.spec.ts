@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
-import * as crypto from 'crypto';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -9,8 +8,6 @@ describe('AuthService', () => {
   let prismaMock: {
     user: { findFirst: jest.Mock; findUnique: jest.Mock; create: jest.Mock; update: jest.Mock };
     userSession: { create: jest.Mock; findUnique: jest.Mock; deleteMany: jest.Mock };
-    oAuthClient: { findUnique: jest.Mock; create: jest.Mock };
-    authCode: { create: jest.Mock; findUnique: jest.Mock; update: jest.Mock };
   };
   let jwtMock: { sign: jest.Mock; decode: jest.Mock };
 
@@ -26,15 +23,6 @@ describe('AuthService', () => {
         create: jest.fn(),
         findUnique: jest.fn(),
         deleteMany: jest.fn(),
-      },
-      oAuthClient: {
-        findUnique: jest.fn(),
-        create: jest.fn(),
-      },
-      authCode: {
-        create: jest.fn(),
-        findUnique: jest.fn(),
-        update: jest.fn(),
       },
     };
 
@@ -56,65 +44,6 @@ describe('AuthService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
-  });
-
-  describe('generateOAuthCode & exchangeOAuthToken', () => {
-    it('should issue authorization code for registered client', async () => {
-      prismaMock.oAuthClient.findUnique.mockResolvedValue({
-        id: '1',
-        clientId: 'wonderlab',
-        isActive: true,
-        redirectUris: ['https://wonderlab.io.vn/auth/callback'],
-      });
-      prismaMock.authCode.create.mockResolvedValue({});
-
-      const code = await service.generateOAuthCode(
-        'wonderlab',
-        'user-123',
-        'https://wonderlab.io.vn/auth/callback',
-        'test-challenge-s256',
-      );
-
-      expect(typeof code).toBe('string');
-      expect(code.length).toBeGreaterThan(16);
-      expect(prismaMock.authCode.create).toHaveBeenCalled();
-    });
-
-    it('should successfully exchange code with valid PKCE verifier', async () => {
-      const verifier = 'my-secret-pkce-verifier-12345';
-      const challenge = crypto.createHash('sha256').update(verifier).digest('base64url');
-
-      prismaMock.authCode.findUnique.mockResolvedValue({
-        code: 'valid-code',
-        clientId: 'wonderlab',
-        codeChallenge: challenge,
-        usedAt: null,
-        expiresAt: new Date(Date.now() + 60000),
-        user: {
-          id: 'user-1',
-          username: 'thanhba',
-          email: 'thanhba@example.com',
-          role: 'ADMIN',
-          avatarUrl: null,
-          isEmailVerified: true,
-          createdAt: new Date(),
-        },
-      });
-      prismaMock.authCode.update.mockResolvedValue({});
-
-      const result = await service.exchangeOAuthToken({
-        grant_type: 'authorization_code',
-        client_id: 'wonderlab',
-        code: 'valid-code',
-        code_verifier: verifier,
-      });
-
-      expect(result.access_token).toBe('mock.jwt.token');
-      expect(result.user.username).toBe('thanhba');
-      expect(prismaMock.authCode.update).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ usedAt: expect.any(Date) }) }),
-      );
-    });
   });
 
   describe('googleLogin', () => {
@@ -175,6 +104,42 @@ describe('AuthService', () => {
 
       expect(result.id).toBe('new-user-1');
       expect(prismaMock.user.create).toHaveBeenCalled();
+    });
+  });
+
+  describe('updateProfile', () => {
+    it('should update user username and email successfully', async () => {
+      const existingUser = {
+        id: 'user-1',
+        username: 'old_user',
+        email: 'old@example.com',
+        role: 'USER',
+        avatarUrl: null,
+        isEmailVerified: true,
+        isActive: true,
+        createdAt: new Date(),
+      };
+
+      prismaMock.user.findUnique.mockImplementation(
+        ({ where }: { where: { id?: string; username?: string; email?: string } }) => {
+          if (where.id) return Promise.resolve(existingUser);
+          return Promise.resolve(null);
+        },
+      );
+
+      prismaMock.user.update.mockResolvedValue({
+        ...existingUser,
+        username: 'new_user',
+        email: 'new@example.com',
+      });
+
+      const result = await service.updateProfile('user-1', {
+        username: 'new_user',
+        email: 'new@example.com',
+      });
+
+      expect(result.username).toBe('new_user');
+      expect(result.email).toBe('new@example.com');
     });
   });
 });

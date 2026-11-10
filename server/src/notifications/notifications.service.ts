@@ -24,7 +24,6 @@ export class NotificationsService {
       where: {
         project: { slug: projectSlug },
         eventType,
-        provider: 'slack',
       },
     });
 
@@ -32,28 +31,12 @@ export class NotificationsService {
       return mapping.channelId;
     }
 
-    // Default Fallback mapping
-    const fallback: Record<string, string> = {
-      deploy: 'C0CGL8EHU9E', // #deployments
-      ci: 'C0CGL8EBFT2', // #ci-cd
-      git: 'C0CFRUJUCSE', // #git-activity
-      feedback: 'C0CFAFQH739', // #wonderlab-feedback
-      comment: 'C0CFAFQRU2K', // #wonderlab-comments
-      test: 'C0CGL8EBFT2', // #ci-cd (sandbox fallback)
-    };
-
-    const target = fallback[eventType];
-    if (!target) {
-      throw new NotFoundException(`No channel mapped for event type: ${eventType}`);
-    }
-    return target;
+    throw new NotFoundException(
+      `No channel mapped in DB for project '${projectSlug}' and event type '${eventType}'`,
+    );
   }
 
-  private async sendSlackApi(
-    payload: Record<string, unknown>,
-    projectId?: string,
-    eventType?: string,
-  ) {
+  private async sendSlackApi(payload: Record<string, unknown>) {
     if (!this.token) {
       this.logger.warn('SLACK_BOT_TOKEN not configured. Skipped dispatch.');
       return { success: false, error: 'TOKEN_NOT_CONFIGURED' };
@@ -70,20 +53,6 @@ export class NotificationsService {
       });
 
       const data = (await resp.json()) as Record<string, unknown>;
-
-      // Save to DispatchLog
-      await this.prisma.dispatchLog.create({
-        data: {
-          projectId,
-          provider: 'slack',
-          eventType: eventType || 'unknown',
-          status: data.ok ? 'SUCCESS' : 'FAIL',
-          payload: payload as object,
-          response: data as object,
-          error: data.error ? String(data.error) : null,
-        },
-      });
-
       return data;
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
@@ -94,39 +63,34 @@ export class NotificationsService {
 
   async sendDeployNotification(dto: SendDeployNotificationDto) {
     const channelId = await this.getTargetChannel(dto.project, 'deploy');
-    const project = await this.prisma.project.findUnique({ where: { slug: dto.project } });
     const payload = this.slackBuilder.buildDeployPayload(channelId, dto);
-    return this.sendSlackApi(payload, project?.id, 'deploy');
+    return this.sendSlackApi(payload);
   }
 
   async sendCiNotification(dto: SendCiNotificationDto) {
     const channelId = await this.getTargetChannel(dto.project, 'ci');
-    const project = await this.prisma.project.findUnique({ where: { slug: dto.project } });
     const payload = this.slackBuilder.buildCiPayload(channelId, dto);
-    return this.sendSlackApi(payload, project?.id, 'ci');
+    return this.sendSlackApi(payload);
   }
 
   async sendCommunityNotification(dto: SendCommunityNotificationDto) {
     const channelId = await this.getTargetChannel(dto.project, dto.type);
-    const project = await this.prisma.project.findUnique({ where: { slug: dto.project } });
     const payload = this.slackBuilder.buildCommunityPayload(channelId, dto);
-    return this.sendSlackApi(payload, project?.id, dto.type);
+    return this.sendSlackApi(payload);
   }
 
   async sendTestNotification(dto: SendTestNotificationDto) {
-    const project = await this.prisma.project.findUnique({ where: { slug: dto.project } });
     let channelId = dto.channelId;
     if (!channelId) {
       channelId = await this.getTargetChannel(dto.project, dto.eventType || 'ci');
     }
     const payload = this.slackBuilder.buildTestPayload(channelId, dto);
-    return this.sendSlackApi(payload, project?.id, dto.eventType || 'test');
+    return this.sendSlackApi(payload);
   }
 
   async sendGitNotification(dto: SendGitNotificationDto) {
     const channelId = await this.getTargetChannel(dto.project, 'git');
-    const project = await this.prisma.project.findUnique({ where: { slug: dto.project } });
     const payload = this.slackBuilder.buildGitPayload(channelId, dto);
-    return this.sendSlackApi(payload, project?.id, 'git');
+    return this.sendSlackApi(payload);
   }
 }

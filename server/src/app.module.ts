@@ -3,7 +3,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { HealthModule } from './health/health.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { ProjectsModule } from './projects/projects.module';
-import { LogsModule } from './logs/logs.module';
+import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { S2SModule } from './s2s/s2s.module';
 
@@ -13,7 +13,7 @@ import { S2SModule } from './s2s/s2s.module';
     HealthModule,
     NotificationsModule,
     ProjectsModule,
-    LogsModule,
+    UsersModule,
     AuthModule,
     S2SModule,
   ],

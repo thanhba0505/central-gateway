@@ -1,10 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FolderGit2, Plus, Trash2, Edit2, X, RefreshCw, AlertCircle, Sparkles } from 'lucide-react';
+import {
+  FolderGit2,
+  Plus,
+  X,
+  RefreshCw,
+  AlertCircle,
+  Sparkles,
+  CheckCircle2,
+  Shield,
+} from 'lucide-react';
 import { GlassCard } from '../../components/ui/glass-card';
 import { GlassButton } from '../../components/ui/glass-button';
-import { api, Project, ChannelMapping } from '../../lib/api';
+import { api, Project } from '../../lib/api';
 import { useTranslation } from '../../i18n';
 
 export default function ProjectsPage() {
@@ -20,15 +29,6 @@ export default function ProjectsPage() {
   const [newProjectDesc, setNewProjectDesc] = useState('');
   const [creatingProject, setCreatingProject] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
-
-  // Channel Mapping Modal State
-  const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
-  const [isChannelModalOpen, setIsChannelModalOpen] = useState(false);
-  const [channelEventType, setChannelEventType] = useState('ci');
-  const [channelId, setChannelId] = useState('');
-  const [channelName, setChannelName] = useState('');
-  const [savingChannel, setSavingChannel] = useState(false);
-  const [channelError, setChannelError] = useState<string | null>(null);
 
   const loadProjects = async () => {
     try {
@@ -85,81 +85,35 @@ export default function ProjectsPage() {
     }
   };
 
-  const openChannelModal = (projectId: string, existing?: ChannelMapping) => {
-    setActiveProjectId(projectId);
-    if (existing) {
-      setChannelEventType(existing.eventType);
-      setChannelId(existing.channelId);
-      setChannelName(existing.channelName);
-    } else {
-      setChannelEventType('ci');
-      setChannelId('');
-      setChannelName('');
-    }
-    setChannelError(null);
-    setIsChannelModalOpen(true);
-  };
-
-  const handleSaveChannel = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!activeProjectId || !channelEventType || !channelId || !channelName) return;
-    setSavingChannel(true);
-    setChannelError(null);
-    try {
-      await api.upsertChannel(activeProjectId, {
-        eventType: channelEventType.toLowerCase().trim(),
-        channelId: channelId.trim(),
-        channelName: channelName.trim().startsWith('#')
-          ? channelName.trim()
-          : `#${channelName.trim()}`,
-        provider: 'slack',
-      });
-      setIsChannelModalOpen(false);
-      await loadProjects();
-    } catch (err: unknown) {
-      setChannelError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setSavingChannel(false);
-    }
-  };
-
-  const handleDeleteChannel = async (projectId: string, mappingId: string) => {
-    if (!confirm(dict.projects.delete_confirm)) return;
-    try {
-      await api.deleteChannel(projectId, mappingId);
-      await loadProjects();
-    } catch (err) {
-      console.error('Failed to delete channel mapping:', err);
-    }
-  };
-
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
       {/* Page Header */}
       <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-purple-400/30 bg-purple-500/15 px-3 py-0.5 text-xs font-semibold text-purple-200">
-            <Sparkles className="h-3 w-3 text-purple-300" />
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-violet-400/30 bg-violet-500/10 px-3 py-1 text-xs font-medium text-violet-300">
+            <Sparkles className="h-3.5 w-3.5" />
             <span>{dict.projects.badge}</span>
           </div>
-          <h1 className="mt-2 text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+          <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">
             {dict.projects.title}
           </h1>
-          <p className="mt-1 text-sm text-violet-200/80">{dict.projects.subtitle}</p>
+          <p className="mt-1 text-sm text-violet-200/70">{dict.projects.subtitle}</p>
         </div>
+
         <div className="flex items-center gap-3">
           <button
             onClick={handleRefresh}
             disabled={refreshing}
-            aria-label={dict.common.refresh}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-violet-200 transition-all hover:bg-white/20 hover:text-white disabled:opacity-50"
+            className="flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2.5 text-xs font-semibold text-white shadow-sm backdrop-blur-md transition-all hover:bg-white/15 active:scale-[0.98]"
           >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin text-purple-300' : ''}`} />
+            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+            <span>{dict.common.refresh}</span>
           </button>
+
           <GlassButton
-            variant="primary"
             onClick={() => setIsNewProjectOpen(true)}
-            className="gap-2"
+            variant="primary"
+            className="flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
             <span>{dict.projects.register_btn}</span>
@@ -167,137 +121,98 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {/* Project List */}
+      {/* Projects List */}
       {loading ? (
-        <GlassCard className="p-12 text-center font-mono text-sm text-violet-300/60">
-          {dict.projects.loading}
-        </GlassCard>
+        <div className="flex h-64 items-center justify-center">
+          <div className="flex items-center gap-3 text-sm text-violet-300">
+            <RefreshCw className="h-5 w-5 animate-spin" />
+            <span>{dict.projects.loading}</span>
+          </div>
+        </div>
       ) : projects.length === 0 ? (
-        <GlassCard className="p-12 text-center">
-          <FolderGit2 className="mx-auto mb-3 h-10 w-10 text-violet-300/40" />
-          <h3 className="text-base font-semibold text-white">{dict.projects.no_projects}</h3>
-          <p className="mt-1 text-sm text-violet-200/70">{dict.projects.no_projects_desc}</p>
+        <GlassCard className="flex flex-col items-center justify-center p-12 text-center">
+          <FolderGit2 className="h-12 w-12 text-violet-400/40" />
+          <h3 className="mt-4 text-base font-bold text-white">{dict.projects.no_projects}</h3>
+          <p className="mt-1 max-w-sm text-xs text-violet-200/60">
+            {dict.projects.no_projects_desc}
+          </p>
+          <GlassButton
+            onClick={() => setIsNewProjectOpen(true)}
+            variant="primary"
+            className="mt-6 flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            <span>{dict.projects.register_btn}</span>
+          </GlassButton>
         </GlassCard>
       ) : (
-        <div className="space-y-6">
-          {projects.map((proj) => (
-            <GlassCard key={proj.id} className="overflow-hidden p-0">
-              {/* Project Header Bar */}
-              <div className="flex flex-col justify-between gap-4 border-b border-white/15 bg-white/[0.04] px-6 py-5 sm:flex-row sm:items-center">
-                <div className="flex items-center gap-4">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/25 bg-gradient-to-tr from-purple-700/60 to-indigo-600/50 font-mono text-lg font-bold text-white shadow-[0_0_15px_rgba(168,85,247,0.35)]">
-                    {proj.slug.slice(0, 1).toUpperCase()}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {projects.map((project) => (
+            <GlassCard
+              key={project.id}
+              className="relative overflow-hidden p-6 transition-all hover:border-white/30"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-gradient-to-br from-violet-500/20 to-purple-500/10 text-violet-300 shadow-inner">
+                    <FolderGit2 className="h-6 w-6" />
                   </div>
                   <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-base font-bold text-white">{proj.name}</h2>
-                      <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-0.5 font-mono text-xs text-violet-200">
-                        {proj.slug}
-                      </span>
-                      <span
-                        className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] ${
-                          proj.isActive
-                            ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-300'
-                            : 'border-white/15 bg-white/10 text-white/50'
-                        }`}
-                      >
-                        {proj.isActive ? dict.common.active : dict.common.disabled}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-xs text-violet-200/70">
-                      {proj.description || dict.dashboard.ecosystem_service}
-                    </p>
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                      {project.name}
+                      {project.isActive ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 font-mono text-[10px] text-emerald-300">
+                          <CheckCircle2 className="h-3 w-3" />
+                          {dict.common.active}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-500/20 px-2 py-0.5 font-mono text-[10px] text-rose-300">
+                          {dict.common.disabled}
+                        </span>
+                      )}
+                    </h3>
+                    <p className="font-mono text-xs text-violet-300/80">slug: {project.slug}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2.5">
-                  <button
-                    onClick={() => handleToggleStatus(proj)}
-                    className={`rounded-full border px-3.5 py-1.5 font-mono text-xs transition-colors ${
-                      proj.isActive
-                        ? 'border-white/20 bg-white/10 text-violet-200 hover:bg-white/20 hover:text-white'
-                        : 'border-emerald-500/30 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30'
+                {/* Status Switch Toggle */}
+                <button
+                  onClick={() => handleToggleStatus(project)}
+                  type="button"
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    project.isActive ? 'bg-emerald-500' : 'bg-slate-700'
+                  }`}
+                  role="switch"
+                  aria-checked={project.isActive}
+                  title={project.isActive ? dict.projects.deactivate : dict.projects.activate}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      project.isActive ? 'translate-x-5' : 'translate-x-0'
                     }`}
-                  >
-                    {proj.isActive ? dict.projects.deactivate : dict.projects.activate}
-                  </button>
-                  <GlassButton
-                    variant="glass"
-                    onClick={() => openChannelModal(proj.id)}
-                    className="gap-1.5 py-1.5 text-xs text-purple-200"
-                  >
-                    <Plus className="h-3.5 w-3.5 text-purple-300" />
-                    <span>{dict.projects.add_channel}</span>
-                  </GlassButton>
-                </div>
+                  />
+                </button>
               </div>
 
-              {/* Mapped Channels Table */}
-              <div className="p-6">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left font-mono text-xs">
-                    <thead>
-                      <tr className="border-b border-white/15 text-[11px] uppercase tracking-wider text-violet-300/60">
-                        <th className="pb-3 font-medium">{dict.projects.col_event_type}</th>
-                        <th className="pb-3 font-medium">{dict.projects.col_channel_name}</th>
-                        <th className="pb-3 font-medium">{dict.projects.col_channel_id}</th>
-                        <th className="pb-3 font-medium">{dict.projects.col_provider}</th>
-                        <th className="pb-3 text-right font-medium">{dict.projects.col_actions}</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/10 text-violet-200">
-                      {proj.channels?.length === 0 ? (
-                        <tr>
-                          <td colSpan={5} className="py-6 text-center text-violet-300/50">
-                            {dict.projects.no_channels}
-                          </td>
-                        </tr>
-                      ) : (
-                        proj.channels?.map((ch) => (
-                          <tr key={ch.id} className="transition-colors hover:bg-white/[0.05]">
-                            <td className="py-3">
-                              <span className="inline-flex items-center rounded-full border border-purple-400/30 bg-purple-500/20 px-2.5 py-0.5 font-bold uppercase text-purple-200">
-                                {ch.eventType}
-                              </span>
-                            </td>
-                            <td className="py-3 font-semibold text-white">{ch.channelName}</td>
-                            <td className="py-3 text-violet-300/70">{ch.channelId}</td>
-                            <td className="py-3">
-                              <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-0.5 text-violet-200">
-                                {ch.provider}
-                              </span>
-                            </td>
-                            <td className="py-3 text-right">
-                              <div className="inline-flex items-center gap-1.5">
-                                <button
-                                  onClick={() => openChannelModal(proj.id, ch)}
-                                  title={dict.projects.edit_channel}
-                                  className="rounded-full p-1.5 text-violet-300/70 transition-colors hover:bg-white/10 hover:text-white"
-                                >
-                                  <Edit2 className="h-3.5 w-3.5" />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteChannel(proj.id, ch.id)}
-                                  title={dict.projects.delete_channel}
-                                  className="rounded-full p-1.5 text-violet-300/70 transition-colors hover:bg-rose-500/20 hover:text-rose-300"
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+              {/* Description */}
+              <p className="mt-4 text-xs text-violet-200/70 leading-relaxed min-h-[36px]">
+                {project.description || 'Hệ sinh thái Prism Platform service.'}
+              </p>
+
+              {/* Metadata Footer */}
+              <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4 text-[11px] text-violet-300/60 font-mono">
+                <span className="flex items-center gap-1.5">
+                  <Shield className="h-3.5 w-3.5 text-purple-400" />
+                  IAM Connected Service
+                </span>
+                <span>{new Date(project.createdAt).toLocaleDateString()}</span>
               </div>
             </GlassCard>
           ))}
         </div>
       )}
 
-      {/* Modal 1: Register New Project */}
+      {/* Modal: Register Project */}
       {isNewProjectOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d021b]/80 p-4 backdrop-blur-md">
           <div className="w-full max-w-md rounded-3xl border border-white/20 bg-[#1a0833]/90 p-6 shadow-[0_16px_50px_rgba(107,36,155,0.4)] backdrop-blur-2xl">
@@ -352,7 +267,7 @@ export default function ProjectsPage() {
                   {dict.projects.field_desc}
                 </label>
                 <textarea
-                  rows={2}
+                  rows={3}
                   placeholder={dict.projects.field_desc_placeholder}
                   value={newProjectDesc}
                   onChange={(e) => setNewProjectDesc(e.target.value)}
@@ -375,98 +290,6 @@ export default function ProjectsPage() {
                   className="py-2.5"
                 >
                   {dict.projects.register_btn}
-                </GlassButton>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Modal 2: Map Channel */}
-      {isChannelModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0d021b]/80 p-4 backdrop-blur-md">
-          <div className="w-full max-w-md rounded-3xl border border-white/20 bg-[#1a0833]/90 p-6 shadow-[0_16px_50px_rgba(107,36,155,0.4)] backdrop-blur-2xl">
-            <div className="flex items-center justify-between border-b border-white/15 pb-4">
-              <h3 className="font-bold text-white">{dict.projects.modal_channel_title}</h3>
-              <button
-                onClick={() => setIsChannelModalOpen(false)}
-                className="rounded-full p-1.5 text-violet-300/70 transition-colors hover:bg-white/10 hover:text-white"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveChannel} className="mt-5 space-y-4">
-              {channelError && (
-                <div className="flex items-center gap-2 rounded-2xl border border-rose-500/30 bg-rose-500/15 p-3 text-xs text-rose-300">
-                  <AlertCircle className="h-4 w-4 shrink-0" />
-                  <span>{channelError}</span>
-                </div>
-              )}
-
-              <div>
-                <label className="mb-1.5 ml-1 block font-mono text-xs uppercase tracking-wider text-violet-300">
-                  {dict.projects.field_event_type}
-                </label>
-                <select
-                  value={channelEventType}
-                  onChange={(e) => setChannelEventType(e.target.value)}
-                  className="w-full rounded-full border border-white/25 bg-[#250e42] px-4 py-2.5 font-mono text-sm text-white focus:border-white/50 focus:outline-none focus:ring-4 focus:ring-violet-400/25"
-                >
-                  <option value="ci">ci (Continuous Integration alerts)</option>
-                  <option value="deploy">deploy (Production deployments)</option>
-                  <option value="git">git (Push, PR & releases)</option>
-                  <option value="feedback">feedback (Community ideas/proposals)</option>
-                  <option value="comment">comment (Moderation & comments)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="mb-1.5 ml-1 block font-mono text-xs uppercase tracking-wider text-violet-300">
-                  {dict.projects.field_channel_name}
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. #ci-cd, #deployments"
-                  value={channelName}
-                  onChange={(e) => setChannelName(e.target.value)}
-                  className="w-full rounded-full border border-white/25 bg-white/[0.12] px-4 py-2.5 font-mono text-sm text-white placeholder-white/40 focus:border-white/50 focus:bg-white/[0.2] focus:outline-none focus:ring-4 focus:ring-violet-400/25"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1.5 ml-1 block font-mono text-xs uppercase tracking-wider text-violet-300">
-                  {dict.projects.field_channel_id}
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. C0CGL8EBFT2"
-                  value={channelId}
-                  onChange={(e) => setChannelId(e.target.value)}
-                  className="w-full rounded-full border border-white/25 bg-white/[0.12] px-4 py-2.5 font-mono text-sm text-white placeholder-white/40 focus:border-white/50 focus:bg-white/[0.2] focus:outline-none focus:ring-4 focus:ring-violet-400/25"
-                />
-                <span className="ml-2 mt-1 block text-[11px] text-violet-300/60">
-                  {dict.projects.field_channel_id_desc}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
-                <button
-                  type="button"
-                  onClick={() => setIsChannelModalOpen(false)}
-                  className="rounded-full px-4 py-2 text-sm text-violet-300 hover:bg-white/10 hover:text-white transition-colors"
-                >
-                  {dict.common.cancel}
-                </button>
-                <GlassButton
-                  type="submit"
-                  variant="primary"
-                  isLoading={savingChannel}
-                  className="py-2.5"
-                >
-                  {dict.projects.save_mapping}
                 </GlassButton>
               </div>
             </form>

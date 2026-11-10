@@ -2,18 +2,17 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
-  BadRequestException,
   NotFoundException,
+  BadRequestException,
   ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
-import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 import { GoogleLoginDto } from './dto/google-login.dto';
-import { OAuthTokenDto } from './dto/oauth.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateUserStatusDto } from './dto/update-status.dto';
 
@@ -36,29 +35,37 @@ export class AuthService {
   ) {}
 
   /**
-   * Register a new ecosystem user
+   * Register a new user
    */
   async register(dto: RegisterDto): Promise<SanitizedUser> {
-    const existing = await this.prisma.user.findFirst({
-      where: {
-        OR: [{ username: dto.username }, ...(dto.email ? [{ email: dto.email }] : [])],
-      },
+    const existingUsername = await this.prisma.user.findUnique({
+      where: { username: dto.username },
     });
-
-    if (existing) {
-      if (existing.username === dto.username) {
-        throw new ConflictException('Username is already taken');
-      }
-      throw new ConflictException('Email is already registered');
+    if (existingUsername) {
+      throw new ConflictException('Username is already taken');
     }
 
-    const passwordHash = await argon2.hash(dto.password);
+    if (dto.email) {
+      const existingEmail = await this.prisma.user.findUnique({
+        where: { email: dto.email },
+      });
+      if (existingEmail) {
+        throw new ConflictException('Email is already registered');
+      }
+    }
+
+    const passwordHash = await argon2.hash(dto.password, {
+      type: argon2.argon2id,
+    });
 
     const user = await this.prisma.user.create({
       data: {
         username: dto.username,
         email: dto.email || null,
         passwordHash,
+        role: 'USER',
+        isEmailVerified: false,
+        isActive: true,
       },
     });
 
@@ -66,7 +73,7 @@ export class AuthService {
   }
 
   /**
-   * Validate user credentials
+   * Validate user credentials for login
    */
   async validateUser(dto: LoginDto): Promise<SanitizedUser> {
     const user = await this.prisma.user.findFirst({
@@ -75,25 +82,16 @@ export class AuthService {
       },
     });
 
-    if (!user) {
+    if (!user || !user.passwordHash) {
       throw new UnauthorizedException('Invalid username or password');
     }
 
     if (!user.isActive) {
-      throw new UnauthorizedException('Account has been deactivated');
+      throw new ForbiddenException('Account has been deactivated. Please contact administrator.');
     }
 
-    const isDev = process.env.NODE_ENV !== 'production';
-    if (isDev && dto.devBypass === true) {
-      return this.sanitizeUser(user);
-    }
-
-    if (!user.passwordHash) {
-      throw new UnauthorizedException('Invalid username or password');
-    }
-
-    const isValid = await argon2.verify(user.passwordHash, dto.password);
-    if (!isValid) {
+    const isMatch = await argon2.verify(user.passwordHash, dto.password);
+    if (!isMatch) {
       throw new UnauthorizedException('Invalid username or password');
     }
 
@@ -101,24 +99,12 @@ export class AuthService {
   }
 
   /**
-   * List users for local development testing
+   * Create user session and issue token
    */
-  async getDevUsers(): Promise<SanitizedUser[]> {
-    const users = await this.prisma.user.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: 'asc' },
-    });
-    return users.map((u) => this.sanitizeUser(u));
-  }
-
-  /**
-   * Create an authenticated session cookie token
-   */
-  async createSession(userId: string, rememberMe = false): Promise<string> {
+  async createSession(userId: string, rememberMe?: boolean): Promise<string> {
     const token = crypto.randomBytes(32).toString('hex');
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
-    // 30 days if rememberMe, otherwise 7 days
     const ttlDays = rememberMe ? 30 : 7;
     const expiresAt = new Date(Date.now() + ttlDays * 24 * 60 * 60 * 1000);
 
@@ -134,19 +120,21 @@ export class AuthService {
   }
 
   /**
-   * Validate session token from cookie
+   * Validate session token
    */
-  async validateSession(rawToken: string): Promise<SanitizedUser | null> {
-    if (!rawToken) return null;
-
-    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+  async validateSession(token: string): Promise<SanitizedUser | null> {
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
     const session = await this.prisma.userSession.findUnique({
       where: { tokenHash },
       include: { user: true },
     });
 
-    if (!session || session.expiresAt < new Date() || !session.user.isActive) {
+    if (!session || session.expiresAt < new Date()) {
+      return null;
+    }
+
+    if (!session.user.isActive) {
       return null;
     }
 
@@ -154,149 +142,27 @@ export class AuthService {
   }
 
   /**
-   * Revoke an active session token
+   * Revoke session on logout
    */
-  async revokeSession(rawToken: string): Promise<void> {
-    if (!rawToken) return;
-    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+  async revokeSession(token: string): Promise<void> {
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
     await this.prisma.userSession.deleteMany({
       where: { tokenHash },
     });
   }
 
   /**
-   * Issue a short-lived authorization code for OAuth2 PKCE flow
+   * List development accounts for quick testing
    */
-  async generateOAuthCode(
-    clientId: string,
-    userId: string,
-    redirectUri: string,
-    codeChallenge: string,
-  ): Promise<string> {
-    let client = await this.prisma.oAuthClient.findUnique({
-      where: { clientId },
+  async getDevUsers(): Promise<SanitizedUser[]> {
+    const users = await this.prisma.user.findMany({
+      orderBy: { createdAt: 'asc' },
     });
-
-    if (!client && clientId === 'wonderlab') {
-      client = await this.prisma.oAuthClient.create({
-        data: {
-          clientId: 'wonderlab',
-          clientSecret: crypto.randomBytes(32).toString('hex'),
-          name: 'Wonderlab Interactive Science',
-          redirectUris: [
-            'https://wonderlab.io.vn/auth/callback',
-            'http://localhost:4100/auth/callback',
-            'http://localhost:3000/auth/callback',
-          ],
-        },
-      });
-    }
-
-    if (!client) {
-      throw new NotFoundException(`OAuth client application '${clientId}' not found`);
-    }
-
-    if (!client.isActive) {
-      throw new BadRequestException('OAuth client application is inactive');
-    }
-
-    const isWhitelisted = client.redirectUris.some((uri: string) => redirectUri.startsWith(uri));
-    if (!isWhitelisted) {
-      throw new BadRequestException(`Redirect URI not registered for client '${clientId}'`);
-    }
-
-    const code = crypto.randomBytes(24).toString('hex');
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes TTL
-
-    await this.prisma.authCode.create({
-      data: {
-        code,
-        clientId,
-        userId,
-        redirectUri,
-        codeChallenge,
-        expiresAt,
-      },
-    });
-
-    return code;
+    return users.map((u) => this.sanitizeUser(u));
   }
 
   /**
-   * Exchange single-use authorization code for user access token via PKCE verification
-   */
-  async exchangeOAuthToken(dto: OAuthTokenDto): Promise<{
-    access_token: string;
-    token_type: string;
-    expires_in: number;
-    user: SanitizedUser;
-  }> {
-    const authCode = await this.prisma.authCode.findUnique({
-      where: { code: dto.code },
-      include: { user: true, client: true },
-    });
-
-    if (!authCode) {
-      throw new UnauthorizedException('Invalid or expired authorization code');
-    }
-
-    if (authCode.clientId !== dto.client_id) {
-      throw new UnauthorizedException('Authorization code does not belong to this client');
-    }
-
-    if (authCode.usedAt !== null) {
-      throw new UnauthorizedException('Authorization code has already been consumed');
-    }
-
-    if (authCode.expiresAt < new Date()) {
-      throw new UnauthorizedException('Authorization code has expired');
-    }
-
-    // Verify PKCE S256 code challenge
-    const calculatedChallenge = crypto
-      .createHash('sha256')
-      .update(dto.code_verifier)
-      .digest('base64url');
-
-    if (
-      calculatedChallenge !== authCode.codeChallenge &&
-      dto.code_verifier !== authCode.codeChallenge
-    ) {
-      throw new UnauthorizedException('PKCE code verifier validation failed');
-    }
-
-    // Mark code as used immediately
-    await this.prisma.authCode.update({
-      where: { code: dto.code },
-      data: { usedAt: new Date() },
-    });
-
-    const user = this.sanitizeUser(authCode.user);
-
-    // Sign JWT access token for child app
-    const payload = {
-      sub: user.id,
-      username: user.username,
-      email: user.email,
-      role: user.role,
-      avatarUrl: user.avatarUrl,
-      isActive: user.isActive,
-      iss: 'central-gateway',
-      aud: dto.client_id,
-    };
-
-    const accessToken = this.jwtService.sign(payload);
-
-    return {
-      access_token: accessToken,
-      token_type: 'Bearer',
-      expires_in: 7 * 24 * 3600,
-      user,
-    };
-  }
-
-  /**
-   * Update user profile and automatically dispatch sync to connected sub-services
+   * Update user profile
    */
   async updateProfile(userId: string, dto: UpdateProfileDto): Promise<SanitizedUser> {
     const user = await this.prisma.user.findUnique({
@@ -330,16 +196,14 @@ export class AuthService {
       data: {
         ...(dto.username ? { username: dto.username } : {}),
         ...(dto.email !== undefined ? { email: dto.email || null } : {}),
-        ...(dto.avatarUrl !== undefined ? { avatarUrl: dto.avatarUrl || null } : {}),
       },
     });
 
-    const sanitized = this.sanitizeUser(updated);
-    return sanitized;
+    return this.sanitizeUser(updated);
   }
 
   /**
-   * Deactivate or activate user account (soft-delete / status toggle)
+   * Deactivate or activate user account
    */
   async updateUserStatus(userId: string, dto: UpdateUserStatusDto): Promise<SanitizedUser> {
     const user = await this.prisma.user.findUnique({
@@ -362,14 +226,11 @@ export class AuthService {
       data: { isActive: dto.isActive },
     });
 
-    const sanitized = this.sanitizeUser(updated);
-    return sanitized;
-
-    return sanitized;
+    return this.sanitizeUser(updated);
   }
 
   /**
-   * Google OAuth / One-Tap authentication (auto-link & provisioning)
+   * Google OAuth authentication
    */
   async googleLogin(dto: GoogleLoginDto): Promise<SanitizedUser> {
     let email = dto.email?.toLowerCase().trim();
@@ -377,7 +238,6 @@ export class AuthService {
     let googleId = dto.googleId?.trim();
     let avatarUrl = dto.avatarUrl?.trim();
 
-    // Decode JWT credential if provided from Google Identity Services
     if (dto.credential && (!email || !googleId)) {
       try {
         const decoded = this.jwtService.decode(dto.credential) as Record<string, unknown> | null;
@@ -396,7 +256,6 @@ export class AuthService {
       throw new BadRequestException('Could not extract email from Google account');
     }
 
-    // Check if user exists by email or googleId
     let user = await this.prisma.user.findFirst({
       where: {
         OR: [{ email }, ...(googleId ? [{ googleId }] : [])],
@@ -427,11 +286,9 @@ export class AuthService {
         },
       });
 
-      const sanitized = this.sanitizeUser(user);
-      return sanitized;
+      return this.sanitizeUser(user);
     }
 
-    // Create new user for first-time Google signin
     const baseUsername =
       (name ? name.replace(/\s+/g, '_').toLowerCase() : email.split('@')[0])
         .replace(/[^a-zA-Z0-9_]/g, '')
@@ -455,8 +312,7 @@ export class AuthService {
       },
     });
 
-    const sanitized = this.sanitizeUser(newUser);
-    return sanitized;
+    return this.sanitizeUser(newUser);
   }
 
   private sanitizeUser(user: {
