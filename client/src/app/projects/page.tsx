@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { FolderGit2, Plus, X, RefreshCw, AlertCircle, Sparkles, Shield } from 'lucide-react';
 import { GlassCard } from '../../components/ui/glass-card';
 import { GlassButton } from '../../components/ui/glass-button';
+import { useDelayedLoading } from '../../lib/hooks/use-delayed-loading';
 import { api, Project } from '../../lib/api';
 import { useTranslation } from '../../i18n';
 
@@ -12,6 +13,7 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const showLoading = useDelayedLoading(loading, { delay: 180, minDuration: 250 });
 
   // New Project Modal State
   const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
@@ -102,8 +104,8 @@ export default function ProjectsPage() {
       </div>
 
       {/* Projects List */}
-      {loading ? (
-        <div className="flex h-64 items-center justify-center">
+      {showLoading ? (
+        <div className="flex h-64 items-center justify-center animate-in fade-in-0 duration-200">
           <div className="flex items-center gap-3 text-sm text-violet-300">
             <RefreshCw className="h-5 w-5 animate-spin" />
             <span>{dict.projects.loading}</span>
@@ -126,7 +128,7 @@ export default function ProjectsPage() {
           </GlassButton>
         </GlassCard>
       ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 animate-in fade-in-0 duration-300">
           {projects.map((project) => (
             <GlassCard
               key={project.id}

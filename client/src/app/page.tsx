@@ -12,6 +12,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { GlassCard } from '../components/ui/glass-card';
+import { useDelayedLoading } from '../lib/hooks/use-delayed-loading';
 import { api, Project, UserItem } from '../lib/api';
 import { useTranslation } from '../i18n';
 
@@ -22,6 +23,7 @@ export default function HomePage() {
   const [totalUsers, setTotalUsers] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const showLoading = useDelayedLoading(loading, { delay: 180, minDuration: 250 });
 
   const loadData = async () => {
     try {
@@ -91,7 +93,7 @@ export default function HomePage() {
             </div>
           </div>
           <p className="mt-3 font-mono text-3xl font-extrabold text-white">
-            {loading ? '--' : projects.length}
+            {showLoading ? '--' : projects.length}
           </p>
           <div className="mt-3 flex items-center justify-between text-xs text-violet-200/80">
             <span>{activeProjectsCount} đang kích hoạt</span>
@@ -113,7 +115,7 @@ export default function HomePage() {
             </div>
           </div>
           <p className="mt-3 font-mono text-3xl font-extrabold text-white">
-            {loading ? '--' : totalUsers}
+            {showLoading ? '--' : totalUsers}
           </p>
           <div className="mt-3 flex items-center justify-between text-xs text-violet-200/80">
             <span>Tài khoản Prism Hub</span>
@@ -180,8 +182,8 @@ export default function HomePage() {
           </div>
 
           <div className="divide-y divide-white/10 p-3">
-            {loading ? (
-              <div className="p-8 text-center text-xs text-violet-300/60">
+            {showLoading ? (
+              <div className="p-8 text-center text-xs text-violet-300/60 animate-in fade-in-0 duration-200">
                 {dict.dashboard.loading_projects}
               </div>
             ) : projects.length === 0 ? (
@@ -241,8 +243,8 @@ export default function HomePage() {
           </div>
 
           <div className="divide-y divide-white/10 p-3">
-            {loading ? (
-              <div className="p-8 text-center font-mono text-xs text-violet-300/60">
+            {showLoading ? (
+              <div className="p-8 text-center font-mono text-xs text-violet-300/60 animate-in fade-in-0 duration-200">
                 {dict.common.loading}
               </div>
             ) : users.length === 0 ? (
