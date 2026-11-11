@@ -103,75 +103,156 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {/* Projects List */}
-      {loading ? (
-        showLoading ? (
-          <div className="flex h-64 items-center justify-center animate-in fade-in-0 duration-200">
-            <div className="flex items-center gap-3 text-sm text-violet-300">
-              <RefreshCw className="h-5 w-5 animate-spin" />
-              <span>{dict.projects.loading}</span>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 opacity-40">
-            <div className="h-44 rounded-3xl border border-white/10 bg-white/[0.04] animate-pulse" />
-            <div className="h-44 rounded-3xl border border-white/10 bg-white/[0.04] animate-pulse" />
-          </div>
-        )
-      ) : projects.length === 0 ? (
-        <GlassCard className="flex flex-col items-center justify-center p-12 text-center animate-in fade-in-0 duration-300">
-          <FolderGit2 className="h-12 w-12 text-violet-400/40" />
-          <h3 className="mt-4 text-base font-bold text-white">{dict.projects.no_projects}</h3>
-          <p className="mt-1 max-w-sm text-xs text-violet-200/60">
-            {dict.projects.no_projects_desc}
-          </p>
-          <GlassButton
-            onClick={() => setIsNewProjectOpen(true)}
-            variant="primary"
-            className="mt-6 flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            <span>{dict.projects.register_btn}</span>
-          </GlassButton>
-        </GlassCard>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 animate-in fade-in-0 duration-300">
-          {projects.map((project) => (
-            <GlassCard
-              key={project.id}
-              className="relative overflow-hidden p-6 transition-all hover:border-white/30"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-gradient-to-br from-violet-500/20 to-purple-500/10 text-violet-300 shadow-inner">
-                    <FolderGit2 className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                      {project.name}
-                    </h3>
-                    <p className="font-mono text-xs text-violet-300/80">slug: {project.slug}</p>
-                  </div>
-                </div>
-              </div>
+      {/* Projects Table */}
+      <GlassCard className="overflow-hidden p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full table-fixed text-left text-xs min-w-[760px]">
+            <thead className="border-b border-white/10 bg-white/[0.04] font-mono uppercase tracking-wider text-violet-300/80 whitespace-nowrap">
+              <tr>
+                <th className="w-[26%] px-6 py-4">{dict.projects.field_name}</th>
+                <th className="w-[18%] px-6 py-4">{dict.projects.field_slug}</th>
+                <th className="w-[30%] px-6 py-4">{dict.projects.field_desc}</th>
+                <th className="w-[14%] px-6 py-4 text-center">{dict.users.status}</th>
+                <th className="w-[12%] px-6 py-4 text-right">{dict.users.created_at}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5 transition-opacity duration-300">
+              {loading ? (
+                showLoading ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="py-16 text-center text-violet-300/60 animate-in fade-in-0 duration-200"
+                    >
+                      <div className="flex items-center justify-center gap-3">
+                        <RefreshCw className="h-5 w-5 animate-spin text-purple-300" />
+                        <span>{dict.projects.loading}</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  [1, 2, 3].map((idx) => (
+                    <tr key={idx} className="animate-pulse">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 shrink-0 rounded-xl bg-white/10" />
+                          <div className="space-y-1.5 flex-1 min-w-0">
+                            <div className="h-4 w-32 rounded bg-white/10" />
+                            <div className="h-3 w-24 rounded bg-white/5" />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="h-6 w-20 rounded bg-white/10" />
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="h-4 w-48 rounded bg-white/10" />
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <div className="mx-auto h-5 w-16 rounded-full bg-white/10" />
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="ml-auto h-4 w-20 rounded bg-white/10" />
+                      </td>
+                    </tr>
+                  ))
+                )
+              ) : projects.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-16 text-center animate-in fade-in-0 duration-200">
+                    <FolderGit2 className="mx-auto h-10 w-10 text-violet-400/30" />
+                    <p className="mt-3 text-sm font-semibold text-white">
+                      {dict.projects.no_projects}
+                    </p>
+                    <p className="mt-1 text-xs text-violet-200/50">
+                      {dict.projects.no_projects_desc}
+                    </p>
+                    <GlassButton
+                      onClick={() => setIsNewProjectOpen(true)}
+                      variant="primary"
+                      className="mt-5 inline-flex items-center gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      <span>{dict.projects.register_btn}</span>
+                    </GlassButton>
+                  </td>
+                </tr>
+              ) : (
+                projects.map((project) => (
+                  <tr
+                    key={project.id}
+                    className="transition-colors duration-200 hover:bg-white/[0.03]"
+                  >
+                    {/* Application Name */}
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-purple-500/20 to-indigo-500/10 font-mono text-sm font-bold text-white shadow-inner">
+                          {project.slug.slice(0, 1).toUpperCase()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <span className="block truncate font-bold text-white text-xs">
+                            {project.name}
+                          </span>
+                          <span className="flex items-center gap-1 font-mono text-[10px] text-violet-300/60">
+                            <Shield className="h-3 w-3 text-purple-400 shrink-0" />
+                            IAM Connected
+                          </span>
+                        </div>
+                      </div>
+                    </td>
 
-              {/* Description */}
-              <p className="mt-4 text-xs text-violet-200/70 leading-relaxed min-h-[36px]">
-                {project.description || 'Hệ sinh thái Prism Platform service.'}
-              </p>
+                    {/* Slug */}
+                    <td className="px-6 py-4">
+                      <code className="rounded-md border border-white/10 bg-white/[0.06] px-2 py-1 font-mono text-xs text-purple-300">
+                        {project.slug}
+                      </code>
+                    </td>
 
-              {/* Metadata Footer */}
-              <div className="mt-6 flex items-center justify-between border-t border-white/10 pt-4 text-[11px] text-violet-300/60 font-mono">
-                <span className="flex items-center gap-1.5">
-                  <Shield className="h-3.5 w-3.5 text-purple-400" />
-                  IAM Connected Service
-                </span>
-                <span>{new Date(project.createdAt).toLocaleDateString()}</span>
-              </div>
-            </GlassCard>
-          ))}
+                    {/* Description */}
+                    <td className="px-6 py-4">
+                      <p
+                        className="truncate text-xs text-violet-200/80"
+                        title={project.description || undefined}
+                      >
+                        {project.description || (
+                          <span className="text-violet-400/40 italic">
+                            Hệ sinh thái Prism Platform service
+                          </span>
+                        )}
+                      </p>
+                    </td>
+
+                    {/* Status */}
+                    <td className="px-6 py-4 text-center">
+                      <span
+                        className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 font-mono text-[10px] font-semibold ${
+                          project.isActive
+                            ? 'border border-emerald-500/30 bg-emerald-500/15 text-emerald-300'
+                            : 'border border-rose-500/30 bg-rose-500/15 text-rose-300'
+                        }`}
+                      >
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            project.isActive
+                              ? 'bg-emerald-400 shadow-[0_0_6px_#34d399]'
+                              : 'bg-rose-400'
+                          }`}
+                        />
+                        {project.isActive ? dict.common.active : dict.common.disabled}
+                      </span>
+                    </td>
+
+                    {/* Created At */}
+                    <td className="px-6 py-4 text-right font-mono text-violet-300/60">
+                      {new Date(project.createdAt).toLocaleDateString()}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+      </GlassCard>
 
       {/* Modal: Register Project */}
       {isNewProjectOpen && (

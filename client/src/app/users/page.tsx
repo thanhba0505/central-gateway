@@ -385,15 +385,15 @@ export default function UsersManagementPage() {
       {/* Users Table */}
       <GlassCard className="overflow-hidden p-0">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="border-b border-white/10 bg-white/[0.04] font-mono uppercase tracking-wider text-violet-300/80">
+          <table className="w-full table-fixed text-left text-xs min-w-[860px]">
+            <thead className="border-b border-white/10 bg-white/[0.04] font-mono uppercase tracking-wider text-violet-300/80 whitespace-nowrap">
               <tr>
-                <th className="px-6 py-4">{dict.auth.field_username}</th>
-                <th className="px-6 py-4">{dict.auth.field_email}</th>
-                <th className="px-6 py-4">{dict.users.role}</th>
-                <th className="px-6 py-4 text-center">{dict.users.status}</th>
-                <th className="px-6 py-4 text-center">{dict.users.actions}</th>
-                <th className="px-6 py-4 text-right">{dict.users.created_at}</th>
+                <th className="w-[26%] px-6 py-4">{dict.auth.field_username}</th>
+                <th className="w-[24%] px-6 py-4">{dict.auth.field_email}</th>
+                <th className="w-[14%] px-6 py-4">{dict.users.role}</th>
+                <th className="w-[12%] px-6 py-4 text-center">{dict.users.status}</th>
+                <th className="w-[12%] px-6 py-4 text-center">{dict.users.actions}</th>
+                <th className="w-[12%] px-6 py-4 text-right">{dict.users.created_at}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 transition-opacity duration-300">
@@ -415,8 +415,11 @@ export default function UsersManagementPage() {
                     <tr key={idx} className="animate-pulse">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 rounded-xl bg-white/10" />
-                          <div className="h-4 w-28 rounded bg-white/10" />
+                          <div className="h-9 w-9 shrink-0 rounded-xl bg-white/10" />
+                          <div className="space-y-1.5 flex-1 min-w-0">
+                            <div className="h-4 w-28 rounded bg-white/10" />
+                            <div className="h-3 w-36 rounded bg-white/5" />
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -463,36 +466,41 @@ export default function UsersManagementPage() {
                     >
                       {/* Username */}
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-purple-500/20 to-indigo-500/10 font-bold text-purple-200">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-purple-500/20 to-indigo-500/10 font-bold text-purple-200">
                             {item.username.slice(0, 2).toUpperCase()}
                           </div>
-                          <div>
+                          <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5 font-bold text-white">
-                              <span>@{item.username}</span>
+                              <span className="truncate">@{item.username}</span>
                               {isCurrent && (
-                                <span className="rounded-full bg-purple-500/20 px-2 py-0.5 font-mono text-[9px] text-purple-300">
+                                <span className="shrink-0 rounded-full bg-purple-500/20 px-2 py-0.5 font-mono text-[9px] text-purple-300">
                                   You
                                 </span>
                               )}
                               {isDirty && (
-                                <span className="rounded-full bg-amber-500/20 border border-amber-500/40 px-1.5 py-0.2 font-mono text-[9px] text-amber-300 animate-pulse">
+                                <span className="shrink-0 rounded-full bg-amber-500/20 border border-amber-500/40 px-1.5 py-0.2 font-mono text-[9px] text-amber-300 animate-pulse">
                                   chưa lưu
                                 </span>
                               )}
                             </div>
-                            <span className="font-mono text-[10px] text-violet-300/50">
-                              id: {item.id.slice(0, 8)}...
+                            <span className="block truncate font-mono text-[10px] text-violet-300/50">
+                              id: {item.id}
                             </span>
                           </div>
                         </div>
                       </td>
 
                       {/* Email (Read-Only) */}
-                      <td className="px-6 py-4 font-mono text-violet-200/80">
-                        {item.email || (
-                          <span className="text-violet-300/40 italic">Chưa liên kết email</span>
-                        )}
+                      <td className="px-6 py-4">
+                        <span
+                          className="block truncate font-mono text-violet-200/80"
+                          title={item.email || undefined}
+                        >
+                          {item.email || (
+                            <span className="text-violet-300/40 italic">Chưa liên kết email</span>
+                          )}
+                        </span>
                       </td>
 
                       {/* Role Custom Glass Dropdown */}
@@ -503,7 +511,7 @@ export default function UsersManagementPage() {
                           disabled={Boolean(isCurrent || isRowSaving)}
                           onChange={(val) => handleDraftRoleChange(item, val as 'ADMIN' | 'USER')}
                           options={rowRoleOptions}
-                          className="w-28"
+                          className="w-full max-w-[120px]"
                         />
                       </td>
 
