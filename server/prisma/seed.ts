@@ -157,6 +157,39 @@ async function main() {
   });
   console.log('Seeded Wonderlab Service Connection.');
 
+  // 5. Register Git Pulse Service Connection
+  await prisma.serviceConnection.upsert({
+    where: { slug: 'git-pulse' },
+    update: {
+      name: 'Git Pulse Platform',
+      domain:
+        process.env.NODE_ENV === 'production'
+          ? 'https://git-pulse-server.onrender.com'
+          : 'http://localhost:6101',
+      apiPrefix: '/api/v1',
+      apiKey: 'gw_to_gp_s2s_secret_2026',
+      incomingSecret: 'gp_to_gw_s2s_secret_2026',
+      isActive: true,
+      timeoutMs: 5000,
+      metadata: { developerRadar: true, healthPath: '/health' },
+    },
+    create: {
+      slug: 'git-pulse',
+      name: 'Git Pulse Platform',
+      domain:
+        process.env.NODE_ENV === 'production'
+          ? 'https://git-pulse-server.onrender.com'
+          : 'http://localhost:6101',
+      apiPrefix: '/api/v1',
+      apiKey: 'gw_to_gp_s2s_secret_2026',
+      incomingSecret: 'gp_to_gw_s2s_secret_2026',
+      isActive: true,
+      timeoutMs: 5000,
+      metadata: { developerRadar: true, healthPath: '/health' },
+    },
+  });
+  console.log('Seeded Git Pulse Service Connection.');
+
   console.log('Successfully seeded database.');
 }
 
