@@ -251,7 +251,7 @@ EOF
         const minWait = parseInt(process.argv[5], 10);
 
         const isOk = d.status === "ok";
-        const hasDb = d.info && d.info.database && d.info.database.status === "up";
+        const hasDb = d.database === "connected" || (d.info && d.info.database && d.info.database.status === "up");
         if (!isOk || !hasDb) {
           process.stdout.write("false:unhealthy");
           process.exit(0);

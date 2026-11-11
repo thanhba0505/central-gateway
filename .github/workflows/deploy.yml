@@ -121,7 +121,7 @@ jobs:
 
           echo "Recording initial GitHub Deployment for server (in_progress)..."
           GH_SERVER_DEPLOY_ID=$(gh api -X POST /repos/${{ github.repository }}/deployments \
-            --input - <<< '{"ref":"main","environment":"production - server","description":"Server '${{ steps.targets.outputs.version }}' deploying on Render","auto_merge":false,"required_contexts":[],"production_environment":true}' \
+            --input - <<< '{"ref":"main","environment":"main - central-gateway-server","description":"Server '${{ steps.targets.outputs.version }}' deploying on Render","auto_merge":false,"required_contexts":[],"production_environment":true}' \
             --jq '.id' 2>/dev/null || echo "")
           if [ -n "$GH_SERVER_DEPLOY_ID" ]; then
             gh api -X POST /repos/${{ github.repository }}/deployments/$GH_SERVER_DEPLOY_ID/statuses \
@@ -158,26 +158,12 @@ jobs:
 
           echo "Recording initial GitHub Deployment for client (in_progress)..."
           GH_CLIENT_DEPLOY_ID=$(gh api -X POST /repos/${{ github.repository }}/deployments \
-            --input - <<< '{"ref":"main","environment":"production - client","description":"Client '${{ steps.targets.outputs.version }}' deploying on Render","auto_merge":false,"required_contexts":[],"production_environment":true}' \
+            --input - <<< '{"ref":"main","environment":"main - central-gateway-client","description":"Client '${{ steps.targets.outputs.version }}' deploying on Render","auto_merge":false,"required_contexts":[],"production_environment":true}' \
             --jq '.id' 2>/dev/null || echo "")
           if [ -n "$GH_CLIENT_DEPLOY_ID" ]; then
             gh api -X POST /repos/${{ github.repository }}/deployments/$GH_CLIENT_DEPLOY_ID/statuses \
               --input - <<< '{"state":"in_progress","environment_url":"https://central-gateway-client.onrender.com","log_url":"https://dashboard.render.com","description":"Client '${{ steps.targets.outputs.version }}' building on Render..."}' || true
             echo "gh_client_deploy_id=$GH_CLIENT_DEPLOY_ID" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Record Initial Overall Production Deployment (in_progress)
-        id: trigger_prod
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          GH_PROD_DEPLOY_ID=$(gh api -X POST /repos/${{ github.repository }}/deployments \
-            --input - <<< '{"ref":"main","environment":"production","description":"Production '${{ steps.targets.outputs.version }}' deploying on Render","auto_merge":false,"required_contexts":[],"production_environment":true}' \
-            --jq '.id' 2>/dev/null || echo "")
-          if [ -n "$GH_PROD_DEPLOY_ID" ]; then
-            gh api -X POST /repos/${{ github.repository }}/deployments/$GH_PROD_DEPLOY_ID/statuses \
-              --input - <<< '{"state":"in_progress","environment_url":"https://central-gateway-client.onrender.com","log_url":"https://dashboard.render.com","description":"Production '${{ steps.targets.outputs.version }}' rollout in progress..."}' || true
-            echo "gh_prod_deploy_id=$GH_PROD_DEPLOY_ID" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Monitor & Verify Live Deployment Rollout
@@ -201,17 +187,6 @@ jobs:
             --interval 10 \
             --initial-delay 15
 
-      - name: Finalize Overall Production Deployment (Success)
-        if: ${{ job.status == 'success' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PROD_ID="${{ steps.trigger_prod.outputs.gh_prod_deploy_id }}"
-          if [ -n "$PROD_ID" ]; then
-            gh api -X POST /repos/${{ github.repository }}/deployments/$PROD_ID/statuses \
-              --input - <<< '{"state":"success","environment_url":"https://central-gateway-client.onrender.com","log_url":"https://dashboard.render.com","description":"Production '${{ steps.targets.outputs.version }}' live and verified"}' || true
-          fi
-
       - name: Record Failed Deployments (Failure)
         if: failure()
         env:
@@ -219,7 +194,6 @@ jobs:
         run: |
           SERVER_ID="${{ steps.trigger_server.outputs.gh_server_deploy_id }}"
           CLIENT_ID="${{ steps.trigger_client.outputs.gh_client_deploy_id }}"
-          PROD_ID="${{ steps.trigger_prod.outputs.gh_prod_deploy_id }}"
           if [ -n "$SERVER_ID" ]; then
             gh api -X POST /repos/${{ github.repository }}/deployments/$SERVER_ID/statuses \
               --input - <<< '{"state":"failure","description":"Server deployment failed or timed out","log_url":"https://dashboard.render.com"}' || true
@@ -227,10 +201,6 @@ jobs:
           if [ -n "$CLIENT_ID" ]; then
             gh api -X POST /repos/${{ github.repository }}/deployments/$CLIENT_ID/statuses \
               --input - <<< '{"state":"failure","description":"Client deployment failed or timed out","log_url":"https://dashboard.render.com"}' || true
-          fi
-          if [ -n "$PROD_ID" ]; then
-            gh api -X POST /repos/${{ github.repository }}/deployments/$PROD_ID/statuses \
-              --input - <<< '{"state":"failure","description":"Production rollout failed or timed out","log_url":"https://dashboard.render.com"}' || true
           fi
 
       - name: Notify Slack Deployment Result (#deployments)

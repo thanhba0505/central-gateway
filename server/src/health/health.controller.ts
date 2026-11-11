@@ -1,6 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PrismaService } from '../prisma/prisma.service';
+import { APP_VERSION } from '../common/version';
 
 @ApiTags('health')
 @Controller('health')
@@ -24,7 +25,7 @@ export class HealthController {
       service: 'central-gateway-server',
       database: dbStatus,
       timestamp: new Date().toISOString(),
-      version: '0.1.0',
+      version: APP_VERSION,
     };
   }
 }

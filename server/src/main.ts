@@ -6,6 +6,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
+import { APP_VERSION } from './common/version';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
@@ -49,7 +50,7 @@ async function bootstrap() {
     .setDescription(
       'Centralized Single Sign-On IAM Hub, notifications, and platform services for the Prism ecosystem',
     )
-    .setVersion(process.env.npm_package_version || '0.2.1')
+    .setVersion(APP_VERSION)
     .addBearerAuth()
     .addCookieAuth('gateway_session')
     .build();

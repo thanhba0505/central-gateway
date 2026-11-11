@@ -5,6 +5,6 @@ export async function GET() {
     status: 'ok',
     service: 'central-gateway-client',
     timestamp: new Date().toISOString(),
-    version: '0.1.0',
+    version: process.env.NEXT_PUBLIC_APP_VERSION || '0.3.0',
   });
 }
