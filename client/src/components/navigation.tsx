@@ -99,15 +99,14 @@ export function Navigation() {
             <span className="h-1.5 w-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(192,132,252,0.9)] group-hover:scale-125 transition-transform" />
           </Link>
 
-          {/* Desktop Navigation Tabs with Sliding Active Pill */}
-          <nav className="relative hidden items-center gap-1.5 border-l border-white/15 pl-4 md:flex">
+          {/* Desktop Navigation Tabs with Sliding Active Pill Segmented Track */}
+          <nav className="relative hidden items-center rounded-full border border-white/15 bg-white/[0.06] p-1 shadow-inner backdrop-blur-xl md:flex">
             {/* Smooth Sliding Active Pill Indicator */}
             <div
-              className="absolute rounded-full border border-white/30 bg-white/15 shadow-[0_0_15px_rgba(255,255,255,0.18)] backdrop-blur-md transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
+              className="absolute left-0 top-1 bottom-1 rounded-full border border-purple-400/50 bg-gradient-to-r from-purple-500/35 to-indigo-500/30 shadow-[0_0_15px_rgba(168,85,247,0.35)] backdrop-blur-md transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none"
               style={{
                 transform: `translate3d(${indicatorStyle.left}px, 0, 0)`,
                 width: `${indicatorStyle.width}px`,
-                height: `${indicatorStyle.height}px`,
                 opacity: indicatorStyle.opacity,
               }}
             />
@@ -122,11 +121,11 @@ export function Navigation() {
                   ref={(el) => {
                     tabRefs.current[idx] = el;
                   }}
-                  className={`relative z-10 flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-medium cursor-pointer transition-colors duration-200 ${
+                  className={`relative z-10 flex h-7 items-center gap-2 rounded-full px-3.5 text-xs font-mono font-medium transition-colors duration-200 select-none cursor-pointer ${
                     isActive ? 'text-white font-bold' : 'text-violet-200/70 hover:text-white'
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className="h-3.5 w-3.5 shrink-0" />
                   <span>{item.name}</span>
                 </Link>
               );

@@ -397,18 +397,46 @@ export default function UsersManagementPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5 transition-opacity duration-300">
-              {showLoading ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="py-16 text-center text-violet-300/60 animate-in fade-in-0 duration-200"
-                  >
-                    <div className="flex items-center justify-center gap-3">
-                      <RefreshCw className="h-5 w-5 animate-spin text-purple-300" />
-                      <span>{dict.common.loading}</span>
-                    </div>
-                  </td>
-                </tr>
+              {loading ? (
+                showLoading ? (
+                  <tr>
+                    <td
+                      colSpan={6}
+                      className="py-16 text-center text-violet-300/60 animate-in fade-in-0 duration-200"
+                    >
+                      <div className="flex items-center justify-center gap-3">
+                        <RefreshCw className="h-5 w-5 animate-spin text-purple-300" />
+                        <span>{dict.common.loading}</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  [1, 2, 3, 4, 5].map((idx) => (
+                    <tr key={idx} className="animate-pulse">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-xl bg-white/10" />
+                          <div className="h-4 w-28 rounded bg-white/10" />
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="h-4 w-36 rounded bg-white/10" />
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="h-7 w-24 rounded-lg bg-white/10" />
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <div className="mx-auto h-6 w-11 rounded-full bg-white/10" />
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <div className="mx-auto h-7 w-16 rounded-lg bg-white/10" />
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="ml-auto h-4 w-20 rounded bg-white/10" />
+                      </td>
+                    </tr>
+                  ))
+                )
               ) : users.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-16 text-center animate-in fade-in-0 duration-200">

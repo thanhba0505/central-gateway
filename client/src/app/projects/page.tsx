@@ -104,15 +104,22 @@ export default function ProjectsPage() {
       </div>
 
       {/* Projects List */}
-      {showLoading ? (
-        <div className="flex h-64 items-center justify-center animate-in fade-in-0 duration-200">
-          <div className="flex items-center gap-3 text-sm text-violet-300">
-            <RefreshCw className="h-5 w-5 animate-spin" />
-            <span>{dict.projects.loading}</span>
+      {loading ? (
+        showLoading ? (
+          <div className="flex h-64 items-center justify-center animate-in fade-in-0 duration-200">
+            <div className="flex items-center gap-3 text-sm text-violet-300">
+              <RefreshCw className="h-5 w-5 animate-spin" />
+              <span>{dict.projects.loading}</span>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 opacity-40">
+            <div className="h-44 rounded-3xl border border-white/10 bg-white/[0.04] animate-pulse" />
+            <div className="h-44 rounded-3xl border border-white/10 bg-white/[0.04] animate-pulse" />
+          </div>
+        )
       ) : projects.length === 0 ? (
-        <GlassCard className="flex flex-col items-center justify-center p-12 text-center">
+        <GlassCard className="flex flex-col items-center justify-center p-12 text-center animate-in fade-in-0 duration-300">
           <FolderGit2 className="h-12 w-12 text-violet-400/40" />
           <h3 className="mt-4 text-base font-bold text-white">{dict.projects.no_projects}</h3>
           <p className="mt-1 max-w-sm text-xs text-violet-200/60">
