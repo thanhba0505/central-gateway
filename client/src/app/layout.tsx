@@ -9,7 +9,7 @@ import { AppShell } from '@/components/app-shell';
 
 export const metadata: Metadata = {
   title: 'Central Gateway — SSO & Platform Hub',
-  description: 'Single Sign-On IAM Hub, Notifications & Cloud Platform for the Prism Ecosystem',
+  description: 'Single Sign-On IAM Hub, Notifications & Cloud Platform for the Prism Platform',
 };
 
 export default function RootLayout({

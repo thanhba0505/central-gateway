@@ -6,7 +6,6 @@ import {
   Search,
   RefreshCw,
   AlertCircle,
-  Sparkles,
   CheckCircle2,
   Check,
   RotateCcw,
@@ -267,11 +266,7 @@ export default function UsersManagementPage() {
       {/* Page Header */}
       <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-purple-400/30 bg-purple-500/10 px-3 py-1 text-xs font-medium text-purple-300">
-            <Sparkles className="h-3.5 w-3.5" />
-            <span>{dict.users.badge}</span>
-          </div>
-          <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">
+          <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
             {dict.users.title}
           </h1>
           <p className="mt-1 text-sm text-violet-200/70">{dict.users.subtitle}</p>
@@ -289,55 +284,75 @@ export default function UsersManagementPage() {
         </div>
       </div>
 
-      {/* Unsaved Changes Banner with Smooth Expand Transition */}
-      {unsavedCount > 0 && (
-        <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-500/15 to-purple-500/15 p-4 text-xs font-medium shadow-lg backdrop-blur-xl animate-in fade-in-0 slide-in-from-top-2 duration-300">
-          <div className="flex items-center gap-2.5 text-amber-200">
-            <AlertCircle className="h-4 w-4 shrink-0 text-amber-400" />
-            <span>{dict.users.unsaved_changes.replace('{count}', String(unsavedCount))}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleCancelAll}
-              disabled={savingAll}
-              className="flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-white/20 transition-all cursor-pointer disabled:opacity-50"
-            >
-              <RotateCcw className="h-3 w-3" />
-              <span>{dict.users.cancel}</span>
-            </button>
-            <button
-              onClick={handleSaveAll}
-              disabled={savingAll}
-              className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 px-4 py-1.5 text-xs font-bold text-white shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:brightness-110 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
-            >
-              {savingAll ? (
-                <RefreshCw className="h-3 w-3 animate-spin" />
-              ) : (
-                <Save className="h-3 w-3" />
-              )}
-              <span>{savingAll ? dict.users.saving : dict.users.save_all}</span>
-            </button>
+      {/* Unsaved Changes Banner with Smooth Height & Opacity Expansion */}
+      <div
+        className={`grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          unsavedCount > 0
+            ? 'grid-rows-[1fr] opacity-100 mb-6 scale-100'
+            : 'grid-rows-[0fr] opacity-0 mb-0 scale-[0.98] pointer-events-none'
+        }`}
+      >
+        <div className="overflow-hidden min-h-0">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-500/15 to-purple-500/15 p-4 text-xs font-medium shadow-lg backdrop-blur-xl">
+            <div className="flex items-center gap-2.5 text-amber-200">
+              <AlertCircle className="h-4 w-4 shrink-0 text-amber-400" />
+              <span>{dict.users.unsaved_changes.replace('{count}', String(unsavedCount))}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleCancelAll}
+                disabled={savingAll}
+                className="flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-white hover:bg-white/20 transition-all cursor-pointer disabled:opacity-50"
+              >
+                <RotateCcw className="h-3 w-3" />
+                <span>{dict.users.cancel}</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveAll}
+                disabled={savingAll}
+                className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 px-4 py-1.5 text-xs font-bold text-white shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:brightness-110 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {savingAll ? (
+                  <RefreshCw className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Save className="h-3 w-3" />
+                )}
+                <span>{savingAll ? dict.users.saving : dict.users.save_all}</span>
+              </button>
+            </div>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Notice Banner with Smooth Transition */}
-      {notice && (
-        <div
-          className={`mb-6 flex items-center gap-2 rounded-2xl border p-4 text-xs font-medium shadow-lg backdrop-blur-xl animate-in fade-in-0 slide-in-from-top-2 duration-300 ${
-            notice.type === 'success'
-              ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300'
-              : 'border-rose-500/40 bg-rose-500/15 text-rose-300'
-          }`}
-        >
-          {notice.type === 'success' ? (
-            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
-          ) : (
-            <AlertCircle className="h-4 w-4 shrink-0 text-rose-400" />
+      {/* Notice Banner with Smooth Height & Opacity Expansion */}
+      <div
+        className={`grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          notice
+            ? 'grid-rows-[1fr] opacity-100 mb-6 scale-100'
+            : 'grid-rows-[0fr] opacity-0 mb-0 scale-[0.98] pointer-events-none'
+        }`}
+      >
+        <div className="overflow-hidden min-h-0">
+          {notice && (
+            <div
+              className={`flex items-center gap-2 rounded-2xl border p-4 text-xs font-medium shadow-lg backdrop-blur-xl ${
+                notice.type === 'success'
+                  ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-300'
+                  : 'border-rose-500/40 bg-rose-500/15 text-rose-300'
+              }`}
+            >
+              {notice.type === 'success' ? (
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
+              ) : (
+                <AlertCircle className="h-4 w-4 shrink-0 text-rose-400" />
+              )}
+              <span>{notice.message}</span>
+            </div>
           )}
-          <span>{notice.message}</span>
         </div>
-      )}
+      </div>
 
       {/* Filter Toolbar */}
       <GlassCard className="mb-6 p-4">

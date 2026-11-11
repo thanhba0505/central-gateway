@@ -233,7 +233,7 @@ export default function HomePage() {
                     </div>
                   </div>
                   <span
-                    className={`rounded-full px-2.5 py-0.5 font-mono text-[10px] font-semibold ${
+                    className={`rounded-full px-2.5 py-0.5 font-mono text-[10px] font-semibold whitespace-nowrap shrink-0 ${
                       proj.isActive
                         ? 'border border-emerald-500/30 bg-emerald-500/15 text-emerald-300'
                         : 'border border-rose-500/30 bg-rose-500/15 text-rose-300'
@@ -252,7 +252,7 @@ export default function HomePage() {
           <div className="flex items-center justify-between border-b border-white/15 px-6 py-4">
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-blue-300" />
-              <h2 className="text-base font-semibold text-white">Tài khoản Hệ sinh thái Gần đây</h2>
+              <h2 className="text-base font-semibold text-white">Tài khoản Nền tảng Gần đây</h2>
             </div>
             <Link
               href="/users"
