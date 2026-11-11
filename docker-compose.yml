@@ -4,9 +4,9 @@ services:
     container_name: central-gateway-postgres
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgrespassword
-      POSTGRES_DB: central_gateway
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-central_gateway}
     ports:
       - '127.0.0.1:5432:5432'
     volumes:

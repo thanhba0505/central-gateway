@@ -1,62 +1,57 @@
-export interface ChannelMapping {
-  id: string;
-  projectId: string;
-  eventType: string;
-  channelId: string;
-  channelName: string;
-  provider: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface Project {
   id: string;
   slug: string;
   name: string;
   description?: string | null;
   isActive: boolean;
-  channels: ChannelMapping[];
-  _count?: {
-    logs: number;
-  };
   createdAt: string;
   updatedAt: string;
 }
 
-export interface DispatchLog {
+export interface UserItem {
   id: string;
-  projectId?: string | null;
-  project?: {
-    id: string;
-    slug: string;
-    name: string;
-  } | null;
-  provider: string;
-  eventType: string;
-  status: 'SUCCESS' | 'FAIL';
-  payload: Record<string, unknown>;
-  response?: Record<string, unknown> | null;
-  error?: string | null;
+  username: string;
+  email: string | null;
+  role: 'ADMIN' | 'USER';
+  avatarUrl: string | null;
+  isEmailVerified: boolean;
+  isActive: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
-export interface LogsResponse {
-  items: DispatchLog[];
+export interface PaginatedUsersResponse {
+  data: UserItem[];
   total: number;
   page: number;
   limit: number;
-  stats: {
-    total: number;
-    successCount: number;
-    failCount: number;
-    successRate: number;
-  };
+  totalPages: number;
 }
 
 export interface SystemHealth {
   status: string;
   timestamp: string;
   latencyMs?: number;
+}
+
+export interface CurrentUser {
+  id: string;
+  username: string;
+  email: string | null;
+  role: 'ADMIN' | 'USER';
+  avatarUrl: string | null;
+  isEmailVerified: boolean;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface DevDbUser {
+  id: string;
+  username: string;
+  email: string | null;
+  role: 'ADMIN' | 'USER';
+  avatarUrl?: string | null;
+  isActive?: boolean;
 }
 
 export function getGatewaySecretKey(): string {
@@ -74,7 +69,6 @@ export function setGatewaySecretKey(key: string): void {
 }
 
 export function getApiBaseUrl(): string {
-  // In browser, prefer using Next.js proxy route to prevent CORS and automatically forward server secrets
   if (typeof window !== 'undefined') {
     return '/api/proxy';
   }
@@ -143,52 +137,45 @@ export const api = {
     });
   },
 
-  async upsertChannel(
-    projectId: string,
-    data: { eventType: string; channelId: string; channelName: string; provider?: string },
-  ): Promise<ChannelMapping> {
-    return request<ChannelMapping>(`/projects/${projectId}/channels`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  },
-
-  async deleteChannel(projectId: string, mappingId: string): Promise<void> {
-    await request(`/projects/${projectId}/channels/${mappingId}`, {
-      method: 'DELETE',
-    });
-  },
-
-  // Logs
-  async getLogs(
+  // Users Management
+  async getUsers(
     params: {
       page?: number;
       limit?: number;
-      project?: string;
-      eventType?: string;
-      status?: string;
+      search?: string;
+      role?: string;
     } = {},
-  ): Promise<LogsResponse> {
+  ): Promise<PaginatedUsersResponse> {
     const query = new URLSearchParams();
     if (params.page) query.set('page', String(params.page));
     if (params.limit) query.set('limit', String(params.limit));
-    if (params.project) query.set('project', params.project);
-    if (params.eventType) query.set('eventType', params.eventType);
-    if (params.status) query.set('status', params.status);
+    if (params.search) query.set('search', params.search);
+    if (params.role && params.role !== 'all') query.set('role', params.role);
 
     const qs = query.toString();
-    return request<LogsResponse>(`/logs${qs ? `?${qs}` : ''}`);
+    return request<PaginatedUsersResponse>(`/users${qs ? `?${qs}` : ''}`);
   },
 
-  // Sandbox Test Dispatch
-  async sendTestNotification(data: {
-    project: string;
-    eventType?: string;
-    channelId?: string;
-    message: string;
-  }): Promise<Record<string, unknown>> {
-    return request<Record<string, unknown>>('/notifications/slack/test', {
-      method: 'POST',
+  async updateUserStatus(id: string, isActive: boolean): Promise<UserItem> {
+    return request<UserItem>(`/users/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isActive }),
+    });
+  },
+
+  async updateUserRole(id: string, role: 'ADMIN' | 'USER'): Promise<UserItem> {
+    return request<UserItem>(`/users/${id}/role`, {
+      method: 'PATCH',
+      body: JSON.stringify({ role }),
+    });
+  },
+
+  async updateUserProfile(
+    id: string,
+    data: { username?: string; email?: string },
+  ): Promise<UserItem> {
+    return request<UserItem>(`/users/${id}/profile`, {
+      method: 'PATCH',
       body: JSON.stringify(data),
     });
   },
@@ -203,5 +190,33 @@ export const api = {
       timestamp: new Date().toISOString(),
       latencyMs,
     };
+  },
+
+  // Auth & Session
+  async getProfile(): Promise<{ user: CurrentUser | null }> {
+    return request<{ user: CurrentUser | null }>('/auth/me');
+  },
+
+  async getDevUsers(): Promise<DevDbUser[]> {
+    return request<DevDbUser[]>('/auth/dev/users');
+  },
+
+  async logout(): Promise<{ success: boolean }> {
+    return request<{ success: boolean }>('/auth/logout', {
+      method: 'POST',
+    });
+  },
+
+  async googleLogin(payload: {
+    credential?: string;
+    email?: string;
+    name?: string;
+    googleId?: string;
+    avatarUrl?: string;
+  }): Promise<{ user: CurrentUser }> {
+    return request<{ user: CurrentUser }>('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
   },
 };

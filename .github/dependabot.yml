@@ -28,6 +28,9 @@ updates:
         update-types:
           - 'minor'
           - 'patch'
+    ignore:
+      - dependency-name: '*'
+        update-types: ['version-update:semver-major']
 
   # 2. GitHub Actions CI/CD workflows
   - package-ecosystem: 'github-actions'

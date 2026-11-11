@@ -7,59 +7,93 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id              String        @id @default(uuid())
+  username        String        @unique
+  email           String?       @unique
+  passwordHash    String?       @map("password_hash")
+  googleId        String?       @unique @map("google_id")
+  isEmailVerified Boolean       @default(false) @map("is_email_verified")
+  avatarUrl       String?       @map("avatar_url")
+  role            Role          @default(USER)
+  isActive        Boolean       @default(true) @map("is_active")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  sessions        UserSession[]
+  otpTokens       OtpToken[]
+
+  @@map("users")
+}
+
+model UserSession {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique @map("token_hash")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("user_sessions")
+}
+
+model OtpToken {
+  id        String    @id @default(uuid())
+  email     String
+  code      String    @db.VarChar(6)
+  type      String    @default("VERIFY_EMAIL")
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  userId    String?   @map("user_id")
+  user      User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@map("otp_tokens")
+}
+
 model Project {
   id          String           @id @default(uuid())
   slug        String           @unique
   name        String
   description String?
   isActive    Boolean          @default(true)
-  apiKeys     ApiKey[]
   channels    ChannelMapping[]
-  logs        DispatchLog[]
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
   @@map("projects")
 }
 
-model ApiKey {
-  id         String    @id @default(uuid())
-  keyHash    String    @unique
-  name       String
-  projectId  String    @map("project_id")
-  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  lastUsedAt DateTime? @map("last_used_at")
-  createdAt  DateTime  @default(now()) @map("created_at")
-
-  @@map("api_keys")
-}
-
 model ChannelMapping {
-  id          String   @id @default(uuid())
-  projectId   String   @map("project_id")
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  eventType   String   @map("event_type")
-  channelId   String   @map("channel_id")
-  channelName String   @map("channel_name")
-  provider    String   @default("slack")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id        String   @id @default(uuid())
+  projectId String   @map("project_id")
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  eventType String   @map("event_type")
+  channelId String   @map("channel_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([projectId, eventType, provider])
+  @@unique([projectId, eventType])
   @@map("channel_mappings")
 }
 
-model DispatchLog {
-  id         String   @id @default(uuid())
-  projectId  String?  @map("project_id")
-  project    Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  provider   String   @default("slack")
-  eventType  String   @map("event_type")
-  status     String
-  payload    Json
-  response   Json?
-  error      String?
-  createdAt  DateTime @default(now()) @map("created_at")
+model ServiceConnection {
+  id             String    @id @default(uuid())
+  slug           String    @unique
+  name           String
+  domain         String
+  apiPrefix      String    @default("/api/v1") @map("api_prefix")
+  apiKey         String?   @map("api_key")
+  incomingSecret String?   @map("incoming_secret")
+  isActive       Boolean   @default(true) @map("is_active")
+  timeoutMs      Int       @default(5000) @map("timeout_ms")
+  metadata       Json?
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
-  @@map("dispatch_logs")
+  @@map("service_connections")
 }

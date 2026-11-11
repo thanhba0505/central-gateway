@@ -2,12 +2,13 @@
   "name": "central-gateway",
   "version": "0.2.1",
   "private": true,
-  "description": "Central API & Notification Gateway for the ThanhBa ecosystem",
+  "description": "Central API & Notification Gateway for the Prism ecosystem",
   "scripts": {
     "dev": "concurrently -k -p \"[{name}]\" -n \"CLIENT,SERVER\" -c \"cyan.bold,magenta.bold\" \"pnpm --filter central-gateway-client dev\" \"pnpm --filter central-gateway-server start:dev\"",
     "dev:client": "pnpm --filter central-gateway-client dev",
     "dev:server": "pnpm --filter central-gateway-server start:dev",
     "build": "pnpm --filter central-gateway-client build && pnpm --filter central-gateway-server build",
+    "db:generate": "pnpm --filter central-gateway-server prisma:generate",
     "lint": "pnpm -r lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -18,7 +19,7 @@
   "devDependencies": {
     "concurrently": "^9.1.2",
     "prettier": "^3.5.3",
-    "typescript": "^5.8.2"
+    "typescript": "5.9.3"
   },
   "packageManager": "pnpm@12.11.2",
   "engines": {

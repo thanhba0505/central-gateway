@@ -3,32 +3,35 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
-  Activity,
   ArrowRight,
-  Bell,
-  CheckCircle2,
   Database,
-  Flame,
-  FlaskConical,
   FolderGit2,
   RefreshCw,
   ShieldCheck,
-  Terminal,
+  Users,
+  CheckCircle2,
 } from 'lucide-react';
-import { Navigation } from '../components/navigation';
-import { api, Project, LogsResponse } from '../lib/api';
+import { GlassCard } from '../components/ui/glass-card';
+import { api, Project, UserItem } from '../lib/api';
+import { useTranslation } from '../i18n';
 
 export default function HomePage() {
+  const { dict } = useTranslation();
   const [projects, setProjects] = useState<Project[]>([]);
-  const [logsData, setLogsData] = useState<LogsResponse | null>(null);
+  const [users, setUsers] = useState<UserItem[]>([]);
+  const [totalUsers, setTotalUsers] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadData = async () => {
     try {
-      const [projRes, logsRes] = await Promise.all([api.getProjects(), api.getLogs({ limit: 6 })]);
+      const [projRes, usersRes] = await Promise.all([
+        api.getProjects(),
+        api.getUsers({ limit: 5 }),
+      ]);
       setProjects(projRes);
-      setLogsData(logsRes);
+      setUsers(usersRes.data);
+      setTotalUsers(usersRes.total);
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
     } finally {
@@ -39,7 +42,7 @@ export default function HomePage() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 15000);
+    const interval = setInterval(loadData, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -48,345 +51,280 @@ export default function HomePage() {
     loadData();
   };
 
-  const totalChannels = projects.reduce((acc, p) => acc + (p.channels?.length || 0), 0);
-  const successRate = logsData?.stats?.successRate ?? 100;
-  const totalLogs = logsData?.stats?.total ?? 0;
+  const activeProjectsCount = projects.filter((p) => p.isActive).length;
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-950 font-sans text-slate-100">
-      <Navigation />
+    <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6">
+      {/* Top Header & Refresh Action */}
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-white drop-shadow-sm sm:text-3xl">
+            {dict.dashboard.title}
+          </h1>
+          <p className="mt-1 text-xs text-violet-200/70 sm:text-sm">{dict.dashboard.subtitle}</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleManualRefresh}
+            disabled={refreshing}
+            aria-label="Refresh platform metrics"
+            className="flex h-10 items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 text-xs font-semibold text-violet-200 backdrop-blur-md transition-all hover:bg-white/20 hover:text-white disabled:opacity-50"
+          >
+            <RefreshCw
+              className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin text-purple-300' : ''}`}
+            />
+            <span>{refreshing ? dict.common.refreshing : dict.common.refresh}</span>
+          </button>
+        </div>
+      </div>
 
-      {/* Main Content Area */}
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 sm:px-6 py-8">
-        {/* Page Title & Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
-              Ecosystem Control Plane
-            </h1>
-            <p className="mt-1 text-sm text-slate-400">
-              Centralized API routing, multi-project Slack orchestration, and live dispatch
-              observability.
-            </p>
+      {/* Dynamic Metric Cards */}
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Card 1: Connected Projects */}
+        <GlassCard variant="interactive" className="p-6">
+          <div className="flex items-center justify-between text-violet-200/80">
+            <span className="text-xs font-mono uppercase tracking-wider">
+              {dict.dashboard.registered_apps}
+            </span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-500/20 text-purple-300">
+              <FolderGit2 className="h-4 w-4" />
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleManualRefresh}
-              disabled={refreshing}
-              className="flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/60 px-3 py-2 text-xs font-medium text-slate-300 hover:border-slate-700 hover:bg-slate-800 transition-colors disabled:opacity-50"
-            >
-              <RefreshCw
-                className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin text-cyan-400' : ''}`}
-              />
-              <span>Refresh</span>
-            </button>
+          <p className="mt-3 font-mono text-3xl font-extrabold text-white">
+            {loading ? (
+              <span className="inline-block h-8 w-12 rounded-lg bg-white/10 animate-pulse" />
+            ) : (
+              projects.length
+            )}
+          </p>
+          <div className="mt-3 flex items-center justify-between text-xs text-violet-200/80">
+            <span>{activeProjectsCount} đang kích hoạt</span>
             <Link
-              href="/sandbox"
-              className="flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2 text-xs font-semibold text-white hover:bg-cyan-500 shadow-lg shadow-cyan-600/20 active:scale-95 transition-all"
+              href="/projects"
+              className="flex items-center gap-1 font-mono text-purple-300 transition-colors hover:text-white"
             >
-              <FlaskConical className="h-3.5 w-3.5" />
-              <span>Open Sandbox</span>
+              {dict.dashboard.manage} <ArrowRight className="h-3 w-3" />
             </Link>
           </div>
-        </div>
+        </GlassCard>
 
-        {/* Dynamic Metric Cards */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Card 1: Connected Projects */}
-          <div className="rounded-xl border border-slate-800/80 bg-slate-900/40 p-5 backdrop-blur-sm relative overflow-hidden group hover:border-slate-700 transition-colors">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-mono uppercase tracking-wider">
-                Registered Projects
-              </span>
-              <FolderGit2 className="h-4 w-4 text-cyan-400" />
-            </div>
-            <p className="mt-3 font-mono text-3xl font-bold text-white">
-              {loading ? '--' : projects.length}
-            </p>
-            <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
-              <span>Active in ecosystem</span>
-              <Link
-                href="/projects"
-                className="text-cyan-400 hover:underline flex items-center gap-0.5 font-mono text-[11px]"
-              >
-                Manage <ArrowRight className="h-3 w-3" />
-              </Link>
+        {/* Card 2: Total Users */}
+        <GlassCard variant="interactive" className="p-6">
+          <div className="flex items-center justify-between text-violet-200/80">
+            <span className="text-xs font-mono uppercase tracking-wider">{dict.users.title}</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/20 text-blue-300">
+              <Users className="h-4 w-4" />
             </div>
           </div>
-
-          {/* Card 2: Mapped Channels */}
-          <div className="rounded-xl border border-slate-800/80 bg-slate-900/40 p-5 backdrop-blur-sm relative overflow-hidden group hover:border-slate-700 transition-colors">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-mono uppercase tracking-wider">Slack Channels</span>
-              <Bell className="h-4 w-4 text-blue-400" />
-            </div>
-            <p className="mt-3 font-mono text-3xl font-bold text-white">
-              {loading ? '--' : totalChannels}
-            </p>
-            <p className="mt-2 text-xs text-slate-400">
-              Routed across {projects.length} project{projects.length > 1 ? 's' : ''}
-            </p>
+          <p className="mt-3 font-mono text-3xl font-extrabold text-white">
+            {loading ? (
+              <span className="inline-block h-8 w-12 rounded-lg bg-white/10 animate-pulse" />
+            ) : (
+              totalUsers
+            )}
+          </p>
+          <div className="mt-3 flex items-center justify-between text-xs text-violet-200/80">
+            <span>Tài khoản Prism Hub</span>
+            <Link
+              href="/users"
+              className="flex items-center gap-1 font-mono text-blue-300 transition-colors hover:text-white"
+            >
+              {dict.dashboard.manage} <ArrowRight className="h-3 w-3" />
+            </Link>
           </div>
+        </GlassCard>
 
-          {/* Card 3: Total Dispatches */}
-          <div className="rounded-xl border border-slate-800/80 bg-slate-900/40 p-5 backdrop-blur-sm relative overflow-hidden group hover:border-slate-700 transition-colors">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-mono uppercase tracking-wider">Total Dispatches</span>
-              <Activity className="h-4 w-4 text-purple-400" />
-            </div>
-            <p className="mt-3 font-mono text-3xl font-bold text-white">
-              {loading ? '--' : totalLogs}
-            </p>
-            <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
-              <span className="font-mono text-emerald-400 flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3" /> {successRate}% success rate
-              </span>
-              <Link
-                href="/logs"
-                className="text-purple-400 hover:underline flex items-center gap-0.5 font-mono text-[11px]"
-              >
-                Logs <ArrowRight className="h-3 w-3" />
-              </Link>
+        {/* Card 3: IAM & S2S Status */}
+        <GlassCard variant="interactive" className="p-6">
+          <div className="flex items-center justify-between text-violet-200/80">
+            <span className="text-xs font-mono uppercase tracking-wider">BFF & S2S Master</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-300">
+              <ShieldCheck className="h-4 w-4" />
             </div>
           </div>
-
-          {/* Card 4: Database Engine */}
-          <div className="rounded-xl border border-slate-800/80 bg-slate-900/40 p-5 backdrop-blur-sm relative overflow-hidden group hover:border-slate-700 transition-colors">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-xs font-mono uppercase tracking-wider">Storage Engine</span>
-              <Database className="h-4 w-4 text-emerald-400" />
-            </div>
-            <p className="mt-3 font-mono text-xl font-bold text-white">Neon PostgreSQL</p>
-            <p className="mt-2 text-xs text-emerald-400 flex items-center gap-1">
-              <ShieldCheck className="h-3 w-3" /> Serverless Connection Pool
-            </p>
+          <div className="mt-3 flex items-center gap-2">
+            <span className="h-3 w-3 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]" />
+            <p className="font-mono text-2xl font-bold text-white">HOẠT ĐỘNG</p>
           </div>
-        </div>
+          <p className="mt-3 text-xs text-violet-200/80">Đồng bộ Master - Shadow qua S2S</p>
+        </GlassCard>
 
-        {/* Two Columns Grid: Connected Projects & Live Event Stream */}
-        <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-5">
-          {/* Left Column: Connected Projects (3 Cols) */}
-          <div className="lg:col-span-3 space-y-6">
-            <div className="rounded-xl border border-slate-800 bg-slate-900/40 overflow-hidden">
-              <div className="border-b border-slate-800 px-6 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FolderGit2 className="h-4 w-4 text-cyan-400" />
-                  <h2 className="font-semibold text-white text-base">Connected Projects</h2>
-                </div>
-                <Link
-                  href="/projects"
-                  className="text-xs text-cyan-400 hover:underline font-mono flex items-center gap-1"
-                >
-                  View all ({projects.length}) <ArrowRight className="h-3 w-3" />
-                </Link>
-              </div>
+        {/* Card 4: Database Health */}
+        <GlassCard variant="interactive" className="p-6">
+          <div className="flex items-center justify-between text-violet-200/80">
+            <span className="text-xs font-mono uppercase tracking-wider">
+              {dict.dashboard.database_engine}
+            </span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-300">
+              <Database className="h-4 w-4" />
+            </div>
+          </div>
+          <p className="mt-3 font-mono text-2xl font-bold text-white">PostgreSQL 16</p>
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-emerald-300">
+            <CheckCircle2 className="h-3.5 w-3.5" />
+            <span>6 Bảng Nghiệp vụ Sạch</span>
+          </div>
+        </GlassCard>
+      </div>
 
-              <div className="divide-y divide-slate-800/60 p-2">
-                {loading ? (
-                  <div className="p-8 text-center text-xs text-slate-500 font-mono">
-                    Loading ecosystem projects...
-                  </div>
-                ) : projects.length === 0 ? (
-                  <div className="p-8 text-center text-xs text-slate-500">
-                    No projects registered yet.
-                  </div>
-                ) : (
-                  projects.map((proj) => (
-                    <div
-                      key={proj.id}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-lg hover:bg-slate-800/30 transition-colors"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-cyan-500/30 bg-cyan-500/10 font-mono text-base font-bold text-cyan-400">
-                          {proj.slug.slice(0, 1).toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-medium text-white text-sm">{proj.name}</h3>
-                            <span className="font-mono text-[11px] text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">
-                              {proj.slug}
-                            </span>
-                            <span
-                              className={`rounded-full px-2 py-0.5 text-[10px] font-mono border ${
-                                proj.isActive
-                                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                                  : 'bg-slate-800 text-slate-400 border-slate-700'
-                              }`}
-                            >
-                              {proj.isActive ? 'Active' : 'Disabled'}
-                            </span>
-                          </div>
-                          <p className="mt-1 text-xs text-slate-400">
-                            {proj.description || 'Ecosystem platform service'}
-                          </p>
-                          <div className="mt-2 flex flex-wrap gap-1.5">
-                            {proj.channels?.map((ch) => (
-                              <span
-                                key={ch.id}
-                                className="inline-flex items-center gap-1 rounded bg-slate-950 px-2 py-0.5 font-mono text-[10px] text-slate-300 border border-slate-800"
-                              >
-                                <span className="text-cyan-400">{ch.eventType}:</span>
-                                <span>{ch.channelName}</span>
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
+      {/* Main Grid: Projects & Users */}
+      <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Left Column: Registered Projects */}
+        <GlassCard className="overflow-hidden p-0">
+          <div className="flex items-center justify-between border-b border-white/15 px-6 py-4">
+            <div className="flex items-center gap-2">
+              <FolderGit2 className="h-4 w-4 text-purple-300" />
+              <h2 className="text-base font-semibold text-white">
+                {dict.dashboard.connected_apps}
+              </h2>
+            </div>
+            <Link
+              href="/projects"
+              className="flex items-center gap-1 font-mono text-xs text-purple-300 transition-colors hover:text-white"
+            >
+              {dict.dashboard.view_all.replace('{count}', String(projects.length))}{' '}
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
 
-                      <div className="flex sm:flex-col items-end justify-between sm:justify-center gap-1 text-right">
-                        <span className="font-mono text-xs font-semibold text-slate-200">
-                          {proj._count?.logs || 0} events
-                        </span>
-                        <Link
-                          href={`/logs?project=${proj.slug}`}
-                          className="text-[11px] font-mono text-cyan-400 hover:underline"
-                        >
-                          View audit logs
-                        </Link>
+          <div className="divide-y divide-white/10 p-3">
+            {loading ? (
+              <div className="space-y-3 p-2">
+                {[1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between gap-3.5 rounded-2xl p-4 bg-white/[0.02] animate-pulse"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <div className="h-11 w-11 rounded-2xl bg-white/10" />
+                      <div className="space-y-2">
+                        <div className="h-4 w-32 rounded bg-white/10" />
+                        <div className="h-3 w-48 rounded bg-white/5" />
                       </div>
                     </div>
-                  ))
-                )}
+                    <div className="h-5 w-16 rounded-full bg-white/10" />
+                  </div>
+                ))}
               </div>
-            </div>
+            ) : projects.length === 0 ? (
+              <div className="p-8 text-center text-xs text-violet-300/60">
+                {dict.dashboard.no_projects}
+              </div>
+            ) : (
+              projects.map((proj) => (
+                <div
+                  key={proj.id}
+                  className="flex items-center justify-between gap-3.5 rounded-2xl p-4 transition-colors hover:bg-white/[0.08]"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-gradient-to-tr from-purple-700/50 to-indigo-600/40 font-mono text-lg font-bold text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+                      {proj.slug.slice(0, 1).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                        {proj.name}
+                        <span className="font-mono text-[10px] text-violet-300/60">
+                          ({proj.slug})
+                        </span>
+                      </h3>
+                      <p className="mt-0.5 text-xs text-violet-200/70 truncate">
+                        {proj.description || dict.dashboard.ecosystem_service}
+                      </p>
+                    </div>
+                  </div>
+                  <span
+                    className={`rounded-full px-2.5 py-0.5 font-mono text-[10px] font-semibold whitespace-nowrap shrink-0 ${
+                      proj.isActive
+                        ? 'border border-emerald-500/30 bg-emerald-500/15 text-emerald-300'
+                        : 'border border-rose-500/30 bg-rose-500/15 text-rose-300'
+                    }`}
+                  >
+                    {proj.isActive ? dict.common.active : dict.common.disabled}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </GlassCard>
 
-            {/* Architecture Overview Card */}
-            <div className="rounded-xl border border-slate-800 bg-slate-900/30 p-6">
-              <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                <Flame className="h-4 w-4 text-amber-400" />
-                Infrastructure Architecture
-              </h3>
-              <p className="mt-2 text-xs text-slate-400 leading-relaxed">
-                Central Gateway acts as the single ingestion and dispatch hub for the ThanhBa
-                ecosystem. Incoming events from GitHub CI/CD, production deployments, and user
-                community actions are authenticated via Bearer secrets, enriched with Slack Block
-                Kit visual layouts, and delivered with zero secret leaks.
-              </p>
-              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 font-mono text-xs">
-                <div className="rounded-lg border border-slate-800/80 bg-slate-950/60 p-3">
-                  <span className="text-slate-500 text-[10px] block">SERVER INSTANCE</span>
-                  <span className="text-slate-200 mt-0.5 block truncate">NestJS 10 REST</span>
-                </div>
-                <div className="rounded-lg border border-slate-800/80 bg-slate-950/60 p-3">
-                  <span className="text-slate-500 text-[10px] block">CONSOLE CLIENT</span>
-                  <span className="text-slate-200 mt-0.5 block truncate">Next.js 15 App</span>
-                </div>
-                <div className="rounded-lg border border-slate-800/80 bg-slate-950/60 p-3">
-                  <span className="text-slate-500 text-[10px] block">SLACK BOT</span>
-                  <span className="text-slate-200 mt-0.5 block truncate">Block Kit Engine</span>
-                </div>
-              </div>
+        {/* Right Column: Recent Users */}
+        <GlassCard className="overflow-hidden p-0">
+          <div className="flex items-center justify-between border-b border-white/15 px-6 py-4">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-blue-300" />
+              <h2 className="text-base font-semibold text-white">Tài khoản Nền tảng Gần đây</h2>
             </div>
+            <Link
+              href="/users"
+              className="flex items-center gap-1 font-mono text-xs text-blue-300 transition-colors hover:text-white"
+            >
+              Xem toàn bộ ({totalUsers}) <ArrowRight className="h-3 w-3" />
+            </Link>
           </div>
 
-          {/* Right Column: Live Dispatch Stream (2 Cols) */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-xl border border-slate-800 bg-slate-900/40 overflow-hidden">
-              <div className="border-b border-slate-800 px-6 py-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Terminal className="h-4 w-4 text-purple-400" />
-                  <h2 className="font-semibold text-white text-base">Recent Dispatches</h2>
-                </div>
-                <Link
-                  href="/logs"
-                  className="text-xs text-purple-400 hover:underline font-mono flex items-center gap-1"
-                >
-                  All Logs <ArrowRight className="h-3 w-3" />
-                </Link>
-              </div>
-
-              <div className="divide-y divide-slate-800/60 p-2">
-                {loading ? (
-                  <div className="p-8 text-center text-xs text-slate-500 font-mono">
-                    Streaming activity...
-                  </div>
-                ) : !logsData?.items || logsData.items.length === 0 ? (
-                  <div className="p-8 text-center text-xs text-slate-500">
-                    No dispatch events recorded yet.
-                  </div>
-                ) : (
-                  logsData.items.map((log) => {
-                    const isSuccess = log.status === 'SUCCESS';
-                    return (
-                      <div
-                        key={log.id}
-                        className="p-3.5 rounded-lg hover:bg-slate-800/40 transition-colors"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <span
-                              className={`flex h-2 w-2 rounded-full ${
-                                isSuccess ? 'bg-emerald-400' : 'bg-rose-500'
-                              }`}
-                            />
-                            <span className="font-mono text-xs font-bold text-white uppercase">
-                              {log.eventType}
-                            </span>
-                            <span className="font-mono text-[11px] text-slate-400 bg-slate-800 px-1.5 py-0.2 rounded">
-                              {log.project?.slug || 'ecosystem'}
-                            </span>
-                          </div>
-                          <span className="font-mono text-[10px] text-slate-500">
-                            {new Date(log.createdAt).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              second: '2-digit',
-                            })}
-                          </span>
-                        </div>
-
-                        <div className="mt-2 flex items-center justify-between text-xs text-slate-400 font-mono">
-                          <span className="truncate max-w-[200px]">
-                            {log.error ? (
-                              <span className="text-rose-400">{log.error}</span>
-                            ) : (
-                              `Provider: ${log.provider}`
-                            )}
-                          </span>
-                          <span
-                            className={`rounded px-1.5 py-0.5 text-[10px] font-semibold ${
-                              isSuccess
-                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
-                            }`}
-                          >
-                            {log.status}
-                          </span>
-                        </div>
+          <div className="divide-y divide-white/10 p-3">
+            {loading ? (
+              <div className="space-y-2 p-2">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between gap-3 rounded-2xl p-3.5 bg-white/[0.02] animate-pulse"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-xl bg-white/10" />
+                      <div className="space-y-1.5">
+                        <div className="h-3.5 w-24 rounded bg-white/10" />
+                        <div className="h-3 w-36 rounded bg-white/5" />
                       </div>
-                    );
-                  })
-                )}
+                    </div>
+                    <div className="h-5 w-14 rounded-full bg-white/10" />
+                  </div>
+                ))}
               </div>
-            </div>
-
-            {/* Quick Link Card */}
-            <div className="rounded-xl border border-slate-800 bg-gradient-to-br from-cyan-950/30 to-blue-950/20 p-5 border-dashed">
-              <div className="flex items-center gap-2 text-cyan-400 font-semibold text-sm">
-                <FlaskConical className="h-4 w-4" />
-                Notification Sandbox
+            ) : users.length === 0 ? (
+              <div className="p-8 text-center text-xs text-violet-300/60">
+                {dict.users.no_users}
               </div>
-              <p className="mt-1 text-xs text-slate-400">
-                Want to test your Slack layout or verify delivery before deploying? Use the built-in
-                sandbox simulator.
-              </p>
-              <div className="mt-4">
-                <Link
-                  href="/sandbox"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 px-3 py-1.5 text-xs font-mono text-cyan-300 transition-colors"
+            ) : (
+              users.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between gap-3 rounded-2xl p-3.5 transition-colors hover:bg-white/[0.08]"
                 >
-                  Launch Sandbox <ArrowRight className="h-3 w-3" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-gradient-to-br from-blue-500/20 to-purple-500/10 font-bold text-blue-200">
+                      {item.username.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-white truncate">@{item.username}</p>
+                      <p className="font-mono text-[11px] text-violet-300/60 truncate">
+                        {item.email || 'Chưa liên kết email'}
+                      </p>
+                    </div>
+                  </div>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800/80 bg-slate-950 py-6 text-center text-xs text-slate-500 font-mono">
-        ThanhBa Ecosystem — Central Gateway Control Plane
-      </footer>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span
+                      className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold ${
+                        item.role === 'ADMIN'
+                          ? 'bg-purple-500/20 text-purple-300 border border-purple-400/30'
+                          : 'bg-white/10 text-violet-300'
+                      }`}
+                    >
+                      {item.role}
+                    </span>
+                    <span
+                      className={`inline-block h-2 w-2 rounded-full ${
+                        item.isActive ? 'bg-emerald-400 shadow-[0_0_6px_#34d399]' : 'bg-slate-500'
+                      }`}
+                    />
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </GlassCard>
+      </div>
     </div>
   );
 }

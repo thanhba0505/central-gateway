@@ -3,6 +3,7 @@
 Interactive OpenAPI documentation is live at [central-gateway-server.onrender.com/api/docs](https://central-gateway-server.onrender.com/api/docs).
 
 All requests to `/api/v1/notifications/*` must include:
+
 ```http
 Authorization: Bearer <GATEWAY_SECRET_KEY>
 Content-Type: application/json
@@ -13,6 +14,7 @@ Content-Type: application/json
 ## 1. Notification Endpoints
 
 ### 1.1 Deploy Notification
+
 - **Endpoint**: `POST /api/v1/notifications/slack/deploy`
 - **Description**: Dispatches a production deployment status card to `#deployments`.
 - **Payload Schema**:
@@ -33,6 +35,7 @@ Content-Type: application/json
 ---
 
 ### 1.2 CI Pipeline Notification
+
 - **Endpoint**: `POST /api/v1/notifications/slack/ci`
 - **Description**: Dispatches a CI quality verification result card to `#ci-cd`.
 - **Payload Schema**:
@@ -51,6 +54,7 @@ Content-Type: application/json
 ---
 
 ### 1.3 Git Activity Notification
+
 - **Endpoint**: `POST /api/v1/notifications/slack/git`
 - **Description**: Dispatches commits, branches, and PR activities to `#git-activity`.
 - **Payload Schema**:
@@ -78,6 +82,7 @@ Content-Type: application/json
 ---
 
 ### 1.4 Community Feedback & Moderation
+
 - **Endpoint**: `POST /api/v1/notifications/slack/community`
 - **Description**: Dispatches user simulation proposals or comments to `#wonderlab-feedback` / `#wonderlab-comments`.
 - **Payload Schema**:
@@ -97,6 +102,7 @@ Content-Type: application/json
 ---
 
 ### 1.5 System Test Dispatch
+
 - **Endpoint**: `POST /api/v1/notifications/slack/test`
 - **Description**: Test dispatch for sandbox simulation.
 - **Payload Schema**:
@@ -113,10 +119,38 @@ Content-Type: application/json
 
 ## 2. Management & Observability Endpoints
 
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| `GET` | `/api/v1/health` | Health probe (Liveness & Readiness) |
-| `GET` | `/api/v1/projects` | List all registered projects and channel mappings |
-| `POST` | `/api/v1/projects` | Register a new project |
-| `PUT` | `/api/v1/projects/:id/channels` | Update project channel mappings |
-| `GET` | `/api/v1/logs` | Query dispatch audit trail with pagination and stats |
+| Method | Endpoint                        | Description                                          |
+| :----- | :------------------------------ | :--------------------------------------------------- |
+| `GET`  | `/api/v1/health`                | Health probe (Liveness & Readiness)                  |
+| `GET`  | `/api/v1/projects`              | List all registered projects and channel mappings    |
+| `POST` | `/api/v1/projects`              | Register a new project                               |
+| `PUT`  | `/api/v1/projects/:id/channels` | Update project channel mappings                      |
+| `GET`  | `/api/v1/logs`                  | Query dispatch audit trail with pagination and stats |
+
+---
+
+## 3. IAM & Service-to-Service (S2S) Endpoints
+
+### 3.1 OAuth2 PKCE Token Exchange
+
+- **Endpoint**: `POST /api/v1/auth/oauth/token`
+- **Description**: Exchanges authorization code for access token and sanitized user profile with `isActive` status.
+
+### 3.2 OIDC UserInfo
+
+- **Endpoint**: `GET /api/v1/auth/oauth/userinfo`
+- **Headers**: `Authorization: Bearer <access_token>`
+- **Description**: Returns authenticated user profile including `id`, `username`, `email`, `role`, and `isActive`.
+
+### 3.3 User Profile Update & Sync Dispatch
+
+- **Endpoint**: `PATCH /api/v1/auth/profile`
+- **Headers**: `Authorization: Bearer <access_token>`
+- **Description**: Updates user profile (`username`, `email`, `avatarUrl`) and dispatches `POST /api/v1/internal/users/sync` to all active services with `metadata.syncUser = true`.
+
+### 3.4 User Status Toggle & Session Revocation
+
+- **Endpoint**: `PATCH /api/v1/auth/users/:id/status`
+- **Headers**: `Authorization: Bearer <access_token>` (Admin only)
+- **Body**: `{ "isActive": boolean }`
+- **Description**: Activates or deactivates a user account. If deactivating, revokes all active sessions immediately and dispatches sync to all connected services.

@@ -29,13 +29,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 24
 
@@ -65,6 +65,7 @@ jobs:
 
       - name: Notify Slack Deployment Started (#deployments)
         env:
+          GATEWAY_URL: ${{ secrets.GATEWAY_URL || 'https://central-gateway-server.onrender.com/api/v1' }}
           GATEWAY_SECRET_KEY: ${{ secrets.GATEWAY_SECRET_KEY }}
         run: |
           VERSION="${{ steps.targets.outputs.version }}"
@@ -86,67 +87,156 @@ jobs:
           EOF
           )
 
-          curl -s -X POST "https://central-gateway-server.onrender.com/api/v1/notifications/slack/deploy" \
+          curl -s -X POST "$GATEWAY_URL/notifications/slack/deploy" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $GATEWAY_SECRET_KEY" \
             -d "$PAYLOAD" || echo "Deployment started notification skipped or failed"
 
       - name: Trigger Server Deploy (Render API)
+        id: trigger_server
         if: ${{ steps.targets.outputs.service == 'all' || steps.targets.outputs.service == 'server' }}
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           RENDER_SERVER_SERVICE_ID: ${{ secrets.RENDER_SERVER_SERVICE_ID }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -z "$RENDER_API_KEY" ] || [ -z "$RENDER_SERVER_SERVICE_ID" ]; then
             echo "::error::RENDER_API_KEY or RENDER_SERVER_SERVICE_ID not configured in Secrets."
             exit 1
           fi
           echo "Triggering central-gateway-server deploy via Render API..."
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+          RAW_RESP=$(curl -s -w "\n%{http_code}" -X POST \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
             "https://api.render.com/v1/services/$RENDER_SERVER_SERVICE_ID/deploys")
+          HTTP_STATUS=$(echo "$RAW_RESP" | tail -n1)
+          BODY=$(echo "$RAW_RESP" | sed '$d')
           echo "Render Server Deploy API response: HTTP $HTTP_STATUS"
           if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
-            echo "::error::Failed to trigger central-gateway-server deploy (HTTP $HTTP_STATUS)"
+            echo "::error::Failed to trigger central-gateway-server deploy (HTTP $HTTP_STATUS): $BODY"
             exit 1
+          fi
+          SERVER_DEPLOY_ID=$(echo "$BODY" | node -p "JSON.parse(require('fs').readFileSync(0,'utf-8')).id || ''" 2>/dev/null || echo "")
+          echo "server_deploy_id=$SERVER_DEPLOY_ID" >> "$GITHUB_OUTPUT"
+
+          echo "Recording initial GitHub Deployment for server (in_progress)..."
+          GH_SERVER_DEPLOY_ID=$(gh api -X POST /repos/${{ github.repository }}/deployments \
+            --input - <<< '{"ref":"main","environment":"production - server","description":"Server '${{ steps.targets.outputs.version }}' deploying on Render","auto_merge":false,"required_contexts":[],"production_environment":true}' \
+            --jq '.id' 2>/dev/null || echo "")
+          if [ -n "$GH_SERVER_DEPLOY_ID" ]; then
+            gh api -X POST /repos/${{ github.repository }}/deployments/$GH_SERVER_DEPLOY_ID/statuses \
+              --input - <<< '{"state":"in_progress","environment_url":"https://central-gateway-server.onrender.com/api/v1/health","log_url":"https://dashboard.render.com","description":"Server '${{ steps.targets.outputs.version }}' building on Render..."}' || true
+            echo "gh_server_deploy_id=$GH_SERVER_DEPLOY_ID" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Trigger Client Deploy (Render API)
+        id: trigger_client
         if: ${{ steps.targets.outputs.service == 'all' || steps.targets.outputs.service == 'client' }}
         env:
           RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
           RENDER_CLIENT_SERVICE_ID: ${{ secrets.RENDER_CLIENT_SERVICE_ID }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -z "$RENDER_API_KEY" ] || [ -z "$RENDER_CLIENT_SERVICE_ID" ]; then
             echo "::error::RENDER_API_KEY or RENDER_CLIENT_SERVICE_ID not configured in Secrets."
             exit 1
           fi
           echo "Triggering central-gateway-client deploy via Render API..."
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+          RAW_RESP=$(curl -s -w "\n%{http_code}" -X POST \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
             "https://api.render.com/v1/services/$RENDER_CLIENT_SERVICE_ID/deploys")
+          HTTP_STATUS=$(echo "$RAW_RESP" | tail -n1)
+          BODY=$(echo "$RAW_RESP" | sed '$d')
           echo "Render Client Deploy API response: HTTP $HTTP_STATUS"
           if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
-            echo "::error::Failed to trigger central-gateway-client deploy (HTTP $HTTP_STATUS)"
+            echo "::error::Failed to trigger central-gateway-client deploy (HTTP $HTTP_STATUS): $BODY"
             exit 1
+          fi
+          CLIENT_DEPLOY_ID=$(echo "$BODY" | node -p "JSON.parse(require('fs').readFileSync(0,'utf-8')).id || ''" 2>/dev/null || echo "")
+          echo "client_deploy_id=$CLIENT_DEPLOY_ID" >> "$GITHUB_OUTPUT"
+
+          echo "Recording initial GitHub Deployment for client (in_progress)..."
+          GH_CLIENT_DEPLOY_ID=$(gh api -X POST /repos/${{ github.repository }}/deployments \
+            --input - <<< '{"ref":"main","environment":"production - client","description":"Client '${{ steps.targets.outputs.version }}' deploying on Render","auto_merge":false,"required_contexts":[],"production_environment":true}' \
+            --jq '.id' 2>/dev/null || echo "")
+          if [ -n "$GH_CLIENT_DEPLOY_ID" ]; then
+            gh api -X POST /repos/${{ github.repository }}/deployments/$GH_CLIENT_DEPLOY_ID/statuses \
+              --input - <<< '{"state":"in_progress","environment_url":"https://central-gateway-client.onrender.com","log_url":"https://dashboard.render.com","description":"Client '${{ steps.targets.outputs.version }}' building on Render..."}' || true
+            echo "gh_client_deploy_id=$GH_CLIENT_DEPLOY_ID" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Record Initial Overall Production Deployment (in_progress)
+        id: trigger_prod
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          GH_PROD_DEPLOY_ID=$(gh api -X POST /repos/${{ github.repository }}/deployments \
+            --input - <<< '{"ref":"main","environment":"production","description":"Production '${{ steps.targets.outputs.version }}' deploying on Render","auto_merge":false,"required_contexts":[],"production_environment":true}' \
+            --jq '.id' 2>/dev/null || echo "")
+          if [ -n "$GH_PROD_DEPLOY_ID" ]; then
+            gh api -X POST /repos/${{ github.repository }}/deployments/$GH_PROD_DEPLOY_ID/statuses \
+              --input - <<< '{"state":"in_progress","environment_url":"https://central-gateway-client.onrender.com","log_url":"https://dashboard.render.com","description":"Production '${{ steps.targets.outputs.version }}' rollout in progress..."}' || true
+            echo "gh_prod_deploy_id=$GH_PROD_DEPLOY_ID" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Monitor & Verify Live Deployment Rollout
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+          RENDER_SERVER_SERVICE_ID: ${{ secrets.RENDER_SERVER_SERVICE_ID }}
+          RENDER_CLIENT_SERVICE_ID: ${{ secrets.RENDER_CLIENT_SERVICE_ID }}
         run: |
           chmod +x scripts/verify-deployment.sh
           ./scripts/verify-deployment.sh \
             --service "${{ steps.targets.outputs.service }}" \
             --version "${{ steps.targets.outputs.version }}" \
             --commit "${{ steps.targets.outputs.commit }}" \
+            --server-deploy-id "${{ steps.trigger_server.outputs.server_deploy_id }}" \
+            --client-deploy-id "${{ steps.trigger_client.outputs.client_deploy_id }}" \
+            --gh-repo "${{ github.repository }}" \
+            --gh-server-deploy-id "${{ steps.trigger_server.outputs.gh_server_deploy_id }}" \
+            --gh-client-deploy-id "${{ steps.trigger_client.outputs.gh_client_deploy_id }}" \
             --timeout 600 \
             --interval 10 \
             --initial-delay 15
 
+      - name: Finalize Overall Production Deployment (Success)
+        if: ${{ job.status == 'success' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PROD_ID="${{ steps.trigger_prod.outputs.gh_prod_deploy_id }}"
+          if [ -n "$PROD_ID" ]; then
+            gh api -X POST /repos/${{ github.repository }}/deployments/$PROD_ID/statuses \
+              --input - <<< '{"state":"success","environment_url":"https://central-gateway-client.onrender.com","log_url":"https://dashboard.render.com","description":"Production '${{ steps.targets.outputs.version }}' live and verified"}' || true
+          fi
+
+      - name: Record Failed Deployments (Failure)
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SERVER_ID="${{ steps.trigger_server.outputs.gh_server_deploy_id }}"
+          CLIENT_ID="${{ steps.trigger_client.outputs.gh_client_deploy_id }}"
+          PROD_ID="${{ steps.trigger_prod.outputs.gh_prod_deploy_id }}"
+          if [ -n "$SERVER_ID" ]; then
+            gh api -X POST /repos/${{ github.repository }}/deployments/$SERVER_ID/statuses \
+              --input - <<< '{"state":"failure","description":"Server deployment failed or timed out","log_url":"https://dashboard.render.com"}' || true
+          fi
+          if [ -n "$CLIENT_ID" ]; then
+            gh api -X POST /repos/${{ github.repository }}/deployments/$CLIENT_ID/statuses \
+              --input - <<< '{"state":"failure","description":"Client deployment failed or timed out","log_url":"https://dashboard.render.com"}' || true
+          fi
+          if [ -n "$PROD_ID" ]; then
+            gh api -X POST /repos/${{ github.repository }}/deployments/$PROD_ID/statuses \
+              --input - <<< '{"state":"failure","description":"Production rollout failed or timed out","log_url":"https://dashboard.render.com"}' || true
+          fi
+
       - name: Notify Slack Deployment Result (#deployments)
         if: always()
         env:
+          GATEWAY_URL: ${{ secrets.GATEWAY_URL || 'https://central-gateway-server.onrender.com/api/v1' }}
           GATEWAY_SECRET_KEY: ${{ secrets.GATEWAY_SECRET_KEY }}
         run: |
           STATUS="FAIL"
@@ -175,18 +265,7 @@ jobs:
           EOF
           )
 
-          curl -s -X POST "https://central-gateway-server.onrender.com/api/v1/notifications/slack/deploy" \
+          curl -s -X POST "$GATEWAY_URL/notifications/slack/deploy" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $GATEWAY_SECRET_KEY" \
-            -d "$PAYLOAD" || echo "Deployment finished notification skipped or failed"
-
-      - name: Record GitHub Deployment Environment
-        if: ${{ job.status == 'success' }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          DEPLOY_ID=$(gh api -X POST /repos/${{ github.repository }}/deployments \
-            --input - <<< '{"ref":"main","environment":"production","description":"Production '${{ steps.targets.outputs.version }}' on Render","auto_merge":false,"required_contexts":[]}' \
-            --jq '.id')
-          gh api -X POST /repos/${{ github.repository }}/deployments/$DEPLOY_ID/statuses \
-            --input - <<< '{"state":"success","environment_url":"https://central-gateway-client.onrender.com","log_url":"https://dashboard.render.com","description":"Production services healthy and live on Render"}' || true
+            -d "$PAYLOAD" || echo "Deployment result notification skipped or failed"

@@ -5,6 +5,7 @@
 Central Gateway communicates with Slack using an authenticated Bot User (`xoxb-...`) via the official `@slack/web-api` client.
 
 ### Manifest Configuration (JSON)
+
 To create or update the Slack application, use the following App Manifest in the [Slack API Console](https://api.slack.com/apps):
 
 ```json
@@ -22,12 +23,7 @@ To create or update the Slack application, use the following App Manifest in the
   },
   "oauth_config": {
     "scopes": {
-      "bot": [
-        "chat:write",
-        "chat:write.public",
-        "chat:write.customize",
-        "channels:read"
-      ]
+      "bot": ["chat:write", "chat:write.public", "chat:write.customize", "channels:read"]
     }
   },
   "settings": {
@@ -43,24 +39,24 @@ To create or update the Slack application, use the following App Manifest in the
 
 ## 2. OAuth Scopes Explained
 
-| Scope | Category | Description |
-| :--- | :---: | :--- |
-| `chat:write` | Mandatory | Allows posting formatted messages into conversations. |
-| `chat:write.public` | **Critical** | Allows the bot to post into **any public channel** without needing explicit `/invite @bot` invocation. |
-| `chat:write.customize` | Recommended | Allows dynamically customizing sender name and avatar per upstream service. |
-| `channels:read` | Optional | Allows listing public channels to discover names and IDs. |
+| Scope                  |   Category   | Description                                                                                            |
+| :--------------------- | :----------: | :----------------------------------------------------------------------------------------------------- |
+| `chat:write`           |  Mandatory   | Allows posting formatted messages into conversations.                                                  |
+| `chat:write.public`    | **Critical** | Allows the bot to post into **any public channel** without needing explicit `/invite @bot` invocation. |
+| `chat:write.customize` | Recommended  | Allows dynamically customizing sender name and avatar per upstream service.                            |
+| `channels:read`        |   Optional   | Allows listing public channels to discover names and IDs.                                              |
 
 ---
 
 ## 3. Channel Topology & Routing
 
-| Channel Name | Channel ID | Mapped Event Types | Primary Producer |
-| :--- | :--- | :--- | :--- |
-| **`#ci-cd`** | `C0CGL8EBFT2` | `ci` | Wonderlab CI, Gateway CI |
-| **`#deployments`** | `C0CGL8EHU9E` | `deploy` | Wonderlab Deploy, Gateway Deploy |
-| **`#git-activity`** | `C0CFRUJUCSE` | `git` | GitHub Push, Branches, PRs, Dependabot |
-| **`#wonderlab-feedback`** | `C0CFAFQH739` | `feedback` | Wonderlab Community Simulation Proposals |
-| **`#wonderlab-comments`** | `C0CFAFQRU2K` | `comment` | Wonderlab Community Discussions |
+| Channel Name              | Channel ID    | Mapped Event Types | Primary Producer                         |
+| :------------------------ | :------------ | :----------------- | :--------------------------------------- |
+| **`#ci-cd`**              | `C0CGL8EBFT2` | `ci`               | Wonderlab CI, Gateway CI                 |
+| **`#deployments`**        | `C0CGL8EHU9E` | `deploy`           | Wonderlab Deploy, Gateway Deploy         |
+| **`#git-activity`**       | `C0CFRUJUCSE` | `git`              | GitHub Push, Branches, PRs, Dependabot   |
+| **`#wonderlab-feedback`** | `C0CFAFQH739` | `feedback`         | Wonderlab Community Simulation Proposals |
+| **`#wonderlab-comments`** | `C0CFAFQRU2K` | `comment`          | Wonderlab Community Discussions          |
 
 ---
 

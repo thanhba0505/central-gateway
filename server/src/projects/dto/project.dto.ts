@@ -18,28 +18,6 @@ export class CreateProjectDto {
   description?: string;
 }
 
-export class UpsertChannelDto {
-  @ApiProperty({ example: 'ci' })
-  @IsString()
-  @IsNotEmpty()
-  eventType!: string;
-
-  @ApiProperty({ example: 'C0CGL8EBFT2' })
-  @IsString()
-  @IsNotEmpty()
-  channelId!: string;
-
-  @ApiProperty({ example: '#ci-cd' })
-  @IsString()
-  @IsNotEmpty()
-  channelName!: string;
-
-  @ApiPropertyOptional({ example: 'slack', default: 'slack' })
-  @IsString()
-  @IsOptional()
-  provider?: string;
-}
-
 export class UpdateProjectStatusDto {
   @ApiProperty({ example: true })
   @IsBoolean()
