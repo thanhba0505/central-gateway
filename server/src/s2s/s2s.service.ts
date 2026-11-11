@@ -37,6 +37,12 @@ export class S2SService {
     const fullUrl = `${cleanDomain}${cleanPrefix}/${cleanPath}`;
     const normalizedTargetUrlPath = `${cleanPrefix}/${cleanPath}`;
 
+    if (!conn.apiKey) {
+      throw new Error(
+        `[S2S] Service connection '${targetSlug}' does not have an apiKey configured`,
+      );
+    }
+
     const method = options.method ?? 'GET';
     const timestamp = Date.now().toString();
 
@@ -44,19 +50,15 @@ export class S2SService {
       'Content-Type': 'application/json',
       'X-S2S-Service': 'central-gateway',
       'X-S2S-Timestamp': timestamp,
-      ...options.headers,
-    };
-
-    if (conn.apiKey) {
-      headers['Authorization'] = `Bearer ${conn.apiKey}`;
-      headers['X-S2S-Signature'] = generateS2SSignature(
+      'X-S2S-Signature': generateS2SSignature(
         conn.apiKey,
         timestamp,
         method,
         normalizeS2SPath(normalizedTargetUrlPath),
         options.data,
-      );
-    }
+      ),
+      ...options.headers,
+    };
 
     const timeout = options.timeoutMs ?? conn.timeoutMs;
 
