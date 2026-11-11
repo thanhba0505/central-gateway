@@ -8,6 +8,7 @@ import {
 import { Request } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { verifyS2SSignature } from '../s2s/s2s-crypto.util';
+import { decryptS2SSecret } from '../s2s/s2s-vault.util';
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
@@ -50,10 +51,16 @@ export class ApiKeyGuard implements CanActivate {
       throw new UnauthorizedException(`Unauthorized S2S service: ${s2sServiceSlug}`);
     }
 
+    const rawIncomingSecret = decryptS2SSecret(connection.incomingSecret);
+    if (!rawIncomingSecret) {
+      this.logger.warn(`Could not decrypt incoming secret for S2S service '${s2sServiceSlug}'`);
+      throw new UnauthorizedException('Invalid S2S configuration');
+    }
+
     const targetPath = request.originalUrl || request.url;
 
     const isValid = verifyS2SSignature(
-      connection.incomingSecret,
+      rawIncomingSecret,
       s2sTimestamp,
       request.method,
       targetPath,

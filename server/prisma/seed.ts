@@ -3,6 +3,7 @@ dotenv.config();
 dotenv.config({ path: '.env.local' });
 import { PrismaClient, Role } from '@prisma/client';
 import * as argon2 from 'argon2';
+import { encryptS2SSecret } from '../src/s2s/s2s-vault.util';
 
 const prisma = new PrismaClient();
 
@@ -134,8 +135,8 @@ async function main() {
           ? 'https://wonderlab-server.onrender.com'
           : 'http://localhost:4101',
       apiPrefix: '/api/v1',
-      apiKey: 'gw_to_wl_s2s_secret_2026',
-      incomingSecret: 'wl_to_gw_s2s_secret_2026',
+      apiKey: encryptS2SSecret('gw_to_wl_s2s_secret_2026'),
+      incomingSecret: encryptS2SSecret('wl_to_gw_s2s_secret_2026'),
       isActive: true,
       timeoutMs: 5000,
       metadata: { syncUser: true, healthPath: '/health' },
@@ -148,8 +149,8 @@ async function main() {
           ? 'https://wonderlab-server.onrender.com'
           : 'http://localhost:4101',
       apiPrefix: '/api/v1',
-      apiKey: 'gw_to_wl_s2s_secret_2026',
-      incomingSecret: 'wl_to_gw_s2s_secret_2026',
+      apiKey: encryptS2SSecret('gw_to_wl_s2s_secret_2026'),
+      incomingSecret: encryptS2SSecret('wl_to_gw_s2s_secret_2026'),
       isActive: true,
       timeoutMs: 5000,
       metadata: { syncUser: true, healthPath: '/health' },
@@ -167,8 +168,8 @@ async function main() {
           ? 'https://git-pulse-server.onrender.com'
           : 'http://localhost:6101',
       apiPrefix: '/api/v1',
-      apiKey: 'gw_to_gp_s2s_secret_2026',
-      incomingSecret: 'gp_to_gw_s2s_secret_2026',
+      apiKey: encryptS2SSecret('gw_to_gp_s2s_secret_2026'),
+      incomingSecret: encryptS2SSecret('gp_to_gw_s2s_secret_2026'),
       isActive: true,
       timeoutMs: 5000,
       metadata: { developerRadar: true, healthPath: '/health' },
@@ -181,8 +182,8 @@ async function main() {
           ? 'https://git-pulse-server.onrender.com'
           : 'http://localhost:6101',
       apiPrefix: '/api/v1',
-      apiKey: 'gw_to_gp_s2s_secret_2026',
-      incomingSecret: 'gp_to_gw_s2s_secret_2026',
+      apiKey: encryptS2SSecret('gw_to_gp_s2s_secret_2026'),
+      incomingSecret: encryptS2SSecret('gp_to_gw_s2s_secret_2026'),
       isActive: true,
       timeoutMs: 5000,
       metadata: { developerRadar: true, healthPath: '/health' },
