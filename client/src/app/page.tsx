@@ -12,7 +12,6 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { GlassCard } from '../components/ui/glass-card';
-import { useDelayedLoading } from '../lib/hooks/use-delayed-loading';
 import { api, Project, UserItem } from '../lib/api';
 import { useTranslation } from '../i18n';
 
@@ -23,7 +22,6 @@ export default function HomePage() {
   const [totalUsers, setTotalUsers] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const showLoading = useDelayedLoading(loading, { delay: 180, minDuration: 250 });
 
   const loadData = async () => {
     try {
@@ -93,7 +91,11 @@ export default function HomePage() {
             </div>
           </div>
           <p className="mt-3 font-mono text-3xl font-extrabold text-white">
-            {loading ? '--' : projects.length}
+            {loading ? (
+              <span className="inline-block h-8 w-12 rounded-lg bg-white/10 animate-pulse" />
+            ) : (
+              projects.length
+            )}
           </p>
           <div className="mt-3 flex items-center justify-between text-xs text-violet-200/80">
             <span>{activeProjectsCount} đang kích hoạt</span>
@@ -115,7 +117,11 @@ export default function HomePage() {
             </div>
           </div>
           <p className="mt-3 font-mono text-3xl font-extrabold text-white">
-            {loading ? '--' : totalUsers}
+            {loading ? (
+              <span className="inline-block h-8 w-12 rounded-lg bg-white/10 animate-pulse" />
+            ) : (
+              totalUsers
+            )}
           </p>
           <div className="mt-3 flex items-center justify-between text-xs text-violet-200/80">
             <span>Tài khoản Prism Hub</span>
@@ -183,30 +189,23 @@ export default function HomePage() {
 
           <div className="divide-y divide-white/10 p-3">
             {loading ? (
-              showLoading ? (
-                <div className="flex items-center justify-center gap-2 p-8 text-center text-xs text-violet-300/60 animate-in fade-in-0 duration-200">
-                  <RefreshCw className="h-4 w-4 animate-spin text-purple-300" />
-                  <span>{dict.dashboard.loading_projects}</span>
-                </div>
-              ) : (
-                <div className="space-y-3 p-2">
-                  {[1, 2].map((i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between gap-3.5 rounded-2xl p-4 bg-white/[0.02] animate-pulse"
-                    >
-                      <div className="flex items-center gap-3.5">
-                        <div className="h-11 w-11 rounded-2xl bg-white/10" />
-                        <div className="space-y-2">
-                          <div className="h-4 w-32 rounded bg-white/10" />
-                          <div className="h-3 w-48 rounded bg-white/5" />
-                        </div>
+              <div className="space-y-3 p-2">
+                {[1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between gap-3.5 rounded-2xl p-4 bg-white/[0.02] animate-pulse"
+                  >
+                    <div className="flex items-center gap-3.5">
+                      <div className="h-11 w-11 rounded-2xl bg-white/10" />
+                      <div className="space-y-2">
+                        <div className="h-4 w-32 rounded bg-white/10" />
+                        <div className="h-3 w-48 rounded bg-white/5" />
                       </div>
-                      <div className="h-5 w-16 rounded-full bg-white/10" />
                     </div>
-                  ))}
-                </div>
-              )
+                    <div className="h-5 w-16 rounded-full bg-white/10" />
+                  </div>
+                ))}
+              </div>
             ) : projects.length === 0 ? (
               <div className="p-8 text-center text-xs text-violet-300/60">
                 {dict.dashboard.no_projects}
@@ -265,30 +264,23 @@ export default function HomePage() {
 
           <div className="divide-y divide-white/10 p-3">
             {loading ? (
-              showLoading ? (
-                <div className="flex items-center justify-center gap-2 p-8 text-center font-mono text-xs text-violet-300/60 animate-in fade-in-0 duration-200">
-                  <RefreshCw className="h-4 w-4 animate-spin text-purple-300" />
-                  <span>{dict.common.loading}</span>
-                </div>
-              ) : (
-                <div className="space-y-2 p-2">
-                  {[1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between gap-3 rounded-2xl p-3.5 bg-white/[0.02] animate-pulse"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="h-9 w-9 rounded-xl bg-white/10" />
-                        <div className="space-y-1.5">
-                          <div className="h-3.5 w-24 rounded bg-white/10" />
-                          <div className="h-3 w-36 rounded bg-white/5" />
-                        </div>
+              <div className="space-y-2 p-2">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between gap-3 rounded-2xl p-3.5 bg-white/[0.02] animate-pulse"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-xl bg-white/10" />
+                      <div className="space-y-1.5">
+                        <div className="h-3.5 w-24 rounded bg-white/10" />
+                        <div className="h-3 w-36 rounded bg-white/5" />
                       </div>
-                      <div className="h-5 w-14 rounded-full bg-white/10" />
                     </div>
-                  ))}
-                </div>
-              )
+                    <div className="h-5 w-14 rounded-full bg-white/10" />
+                  </div>
+                ))}
+              </div>
             ) : users.length === 0 ? (
               <div className="p-8 text-center text-xs text-violet-300/60">
                 {dict.users.no_users}

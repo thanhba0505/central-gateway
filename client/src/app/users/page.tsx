@@ -16,7 +16,6 @@ import {
 } from 'lucide-react';
 import { GlassCard } from '@/components/ui/glass-card';
 import { GlassSelect } from '@/components/ui/glass-select';
-import { useDelayedLoading } from '@/lib/hooks/use-delayed-loading';
 import { api, UserItem } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 import { useTranslation } from '@/i18n';
@@ -38,9 +37,6 @@ export default function UsersManagementPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
-
-  // Anti-flicker delayed loading
-  const showLoading = useDelayedLoading(loading, { delay: 180, minDuration: 250 });
 
   // Draft state: maps userId -> modified values
   const [drafts, setDrafts] = useState<Record<string, UserDraft>>({});
@@ -398,48 +394,34 @@ export default function UsersManagementPage() {
             </thead>
             <tbody className="divide-y divide-white/5 transition-opacity duration-300">
               {loading ? (
-                showLoading ? (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="py-16 text-center text-violet-300/60 animate-in fade-in-0 duration-200"
-                    >
-                      <div className="flex items-center justify-center gap-3">
-                        <RefreshCw className="h-5 w-5 animate-spin text-purple-300" />
-                        <span>{dict.common.loading}</span>
+                [1, 2, 3, 4, 5].map((idx) => (
+                  <tr key={idx} className="animate-pulse">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 shrink-0 rounded-xl bg-white/10" />
+                        <div className="space-y-1.5 flex-1 min-w-0">
+                          <div className="h-4 w-28 rounded bg-white/10" />
+                          <div className="h-3 w-36 rounded bg-white/5" />
+                        </div>
                       </div>
                     </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 w-36 rounded bg-white/10" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-7 w-24 rounded-lg bg-white/10" />
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="mx-auto h-6 w-11 rounded-full bg-white/10" />
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="mx-auto h-7 w-16 rounded-lg bg-white/10" />
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="ml-auto h-4 w-20 rounded bg-white/10" />
+                    </td>
                   </tr>
-                ) : (
-                  [1, 2, 3, 4, 5].map((idx) => (
-                    <tr key={idx} className="animate-pulse">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 shrink-0 rounded-xl bg-white/10" />
-                          <div className="space-y-1.5 flex-1 min-w-0">
-                            <div className="h-4 w-28 rounded bg-white/10" />
-                            <div className="h-3 w-36 rounded bg-white/5" />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="h-4 w-36 rounded bg-white/10" />
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="h-7 w-24 rounded-lg bg-white/10" />
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="mx-auto h-6 w-11 rounded-full bg-white/10" />
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="mx-auto h-7 w-16 rounded-lg bg-white/10" />
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="ml-auto h-4 w-20 rounded bg-white/10" />
-                      </td>
-                    </tr>
-                  ))
-                )
+                ))
               ) : users.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-16 text-center animate-in fade-in-0 duration-200">

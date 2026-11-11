@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { FolderGit2, Plus, X, RefreshCw, AlertCircle, Sparkles, Shield } from 'lucide-react';
 import { GlassCard } from '../../components/ui/glass-card';
 import { GlassButton } from '../../components/ui/glass-button';
-import { useDelayedLoading } from '../../lib/hooks/use-delayed-loading';
 import { api, Project } from '../../lib/api';
 import { useTranslation } from '../../i18n';
 
@@ -13,7 +12,6 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const showLoading = useDelayedLoading(loading, { delay: 180, minDuration: 250 });
 
   // New Project Modal State
   const [isNewProjectOpen, setIsNewProjectOpen] = useState(false);
@@ -118,45 +116,31 @@ export default function ProjectsPage() {
             </thead>
             <tbody className="divide-y divide-white/5 transition-opacity duration-300">
               {loading ? (
-                showLoading ? (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="py-16 text-center text-violet-300/60 animate-in fade-in-0 duration-200"
-                    >
-                      <div className="flex items-center justify-center gap-3">
-                        <RefreshCw className="h-5 w-5 animate-spin text-purple-300" />
-                        <span>{dict.projects.loading}</span>
+                [1, 2, 3].map((idx) => (
+                  <tr key={idx} className="animate-pulse">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-9 w-9 shrink-0 rounded-xl bg-white/10" />
+                        <div className="space-y-1.5 flex-1 min-w-0">
+                          <div className="h-4 w-32 rounded bg-white/10" />
+                          <div className="h-3 w-24 rounded bg-white/5" />
+                        </div>
                       </div>
                     </td>
+                    <td className="px-6 py-4">
+                      <div className="h-6 w-20 rounded bg-white/10" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="h-4 w-48 rounded bg-white/10" />
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="mx-auto h-5 w-16 rounded-full bg-white/10" />
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="ml-auto h-4 w-20 rounded bg-white/10" />
+                    </td>
                   </tr>
-                ) : (
-                  [1, 2, 3].map((idx) => (
-                    <tr key={idx} className="animate-pulse">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 shrink-0 rounded-xl bg-white/10" />
-                          <div className="space-y-1.5 flex-1 min-w-0">
-                            <div className="h-4 w-32 rounded bg-white/10" />
-                            <div className="h-3 w-24 rounded bg-white/5" />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="h-6 w-20 rounded bg-white/10" />
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="h-4 w-48 rounded bg-white/10" />
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="mx-auto h-5 w-16 rounded-full bg-white/10" />
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="ml-auto h-4 w-20 rounded bg-white/10" />
-                      </td>
-                    </tr>
-                  ))
-                )
+                ))
               ) : projects.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-16 text-center animate-in fade-in-0 duration-200">
