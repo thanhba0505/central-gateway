@@ -132,6 +132,8 @@ export const vi: TranslationDictionary = {
     google_prompt:
       'Đăng nhập Google: Nhập địa chỉ email Google của bạn (hoặc giữ nguyên email quản trị mặc định):',
     google_fail: 'Đăng nhập Google thất bại',
+    google_production_notice:
+      'Tính năng đăng nhập Google trên Production đang được tích hợp. Vui lòng đăng nhập bằng tên người dùng và mật khẩu.',
     no_account: 'Chưa có tài khoản?',
     has_account: 'Đã có tài khoản?',
     register_link: 'Đăng ký',

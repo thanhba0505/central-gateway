@@ -32,7 +32,17 @@ function LoginForm() {
   const [isGoogleChooserOpen, setIsGoogleChooserOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const isDev = process.env.NODE_ENV !== 'production';
+  const [isClientDev, setIsClientDev] = useState(false);
+
+  useEffect(() => {
+    setIsClientDev(
+      process.env.NODE_ENV !== 'production' &&
+        typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' ||
+          window.location.hostname === '127.0.0.1' ||
+          window.location.hostname.endsWith('.local')),
+    );
+  }, []);
 
   // Auto-redirect if already logged in as Admin
   useEffect(() => {
@@ -96,6 +106,10 @@ function LoginForm() {
 
   const handleGoogleLogin = () => {
     setError(null);
+    if (!isClientDev) {
+      setError(dict.auth.google_production_notice);
+      return;
+    }
     setIsGoogleChooserOpen(true);
   };
 
@@ -200,7 +214,7 @@ function LoginForm() {
           )}
 
           {/* Local Dev: Quick Login from DB */}
-          {isDev && (
+          {isClientDev && (
             <button
               type="button"
               onClick={() => setIsGoogleChooserOpen(true)}
@@ -336,12 +350,14 @@ function LoginForm() {
         </GlassCard>
       </div>
 
-      <GoogleAccountChooserModal
-        isOpen={isGoogleChooserOpen}
-        onClose={() => setIsGoogleChooserOpen(false)}
-        onSelectAccount={handleSelectAccount}
-        appName={clientId === 'wonderlab' ? 'Wonderlab' : 'Central Gateway'}
-      />
+      {isClientDev && (
+        <GoogleAccountChooserModal
+          isOpen={isGoogleChooserOpen}
+          onClose={() => setIsGoogleChooserOpen(false)}
+          onSelectAccount={handleSelectAccount}
+          appName={clientId === 'wonderlab' ? 'Wonderlab' : 'Central Gateway'}
+        />
+      )}
     </div>
   );
 }

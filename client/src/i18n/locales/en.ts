@@ -131,6 +131,8 @@ export const en: TranslationDictionary = {
     google_btn: 'Continue with Google',
     google_prompt: 'Google Sign In: Enter your Google email address (or keep default admin email):',
     google_fail: 'Google login failed',
+    google_production_notice:
+      'Google Sign-In on Production is currently being integrated. Please sign in with your username and password.',
     no_account: "Don't have an account?",
     has_account: 'Already have an account?',
     register_link: 'Register',

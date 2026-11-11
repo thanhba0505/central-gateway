@@ -136,6 +136,7 @@ export interface AuthDictionary {
   google_btn: string;
   google_prompt: string;
   google_fail: string;
+  google_production_notice: string;
   no_account: string;
   has_account: string;
   register_link: string;
