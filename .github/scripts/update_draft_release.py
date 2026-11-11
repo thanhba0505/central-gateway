@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Tự động tính toán phiên bản tiếp theo và tạo/cập nhật bản Draft Release cho Wonderlab,
+Tự động tính toán phiên bản tiếp theo và tạo/cập nhật bản Draft Release cho Central Gateway,
 liệt kê toàn bộ commits và PRs kể từ tag phát hành chính thức gần nhất.
 Được chuẩn hóa dựa trên nexus release architecture.
 """
@@ -175,7 +175,7 @@ def main() -> None:
 
     # 6. Soạn thảo Release Notes
     today_str = datetime.now().strftime("%Y-%m-%d")
-    body_parts = [f"## ✨ Wonderlab {next_tag} ({today_str})\n"]
+    body_parts = [f"## ✨ Central Gateway {next_tag} ({today_str})\n"]
 
     if features:
         body_parts.append("### 🚀 Tính năng mới & Mô phỏng (Features)")
