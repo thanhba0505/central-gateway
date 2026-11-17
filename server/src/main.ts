@@ -3,15 +3,13 @@ dotenv.config({ path: '.env.local' });
 dotenv.config({ path: '../.env.local' });
 
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, INestApplication } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
 import { APP_VERSION } from './common/version';
 import { AppModule } from './app.module';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
+export function configureApp(app: INestApplication): void {
   app.setGlobalPrefix('api/v1');
 
   app.use(cookieParser());
@@ -29,7 +27,8 @@ async function bootstrap() {
     'http://localhost:5000',
     'http://localhost:4100',
     'http://localhost:3000',
-    'https://central-gateway-client.onrender.com',
+    'https://central-gateway-client.vercel.app',
+    'https://wonderlab-client.vercel.app',
     'https://wonderlab.io.vn',
     'https://www.wonderlab.io.vn',
   ];
@@ -41,7 +40,7 @@ async function bootstrap() {
   const corsOrigins = Array.from(new Set([...defaultOrigins, ...configuredOrigins]));
 
   app.enableCors({
-    origin: corsOrigins,
+    origin: corsOrigins.length > 0 ? corsOrigins : true,
     credentials: true,
   });
 
@@ -57,6 +56,11 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
+}
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  configureApp(app);
 
   const port = process.env.SERVER_PORT || process.env.PORT || 5101;
   await app.listen(port);
@@ -64,4 +68,6 @@ async function bootstrap() {
   console.log(`📑 Swagger Documentation available at http://localhost:${port}/api/docs`);
 }
 
-bootstrap();
+if (!process.env.VERCEL) {
+  bootstrap();
+}

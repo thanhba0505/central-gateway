@@ -65,7 +65,7 @@ jobs:
 
       - name: Notify Slack Deployment Started (#deployments)
         env:
-          GATEWAY_URL: ${{ secrets.GATEWAY_URL || 'https://central-gateway-server.onrender.com/api/v1' }}
+          GATEWAY_URL: ${{ secrets.GATEWAY_URL || 'https://central-gateway-server.vercel.app/api/v1' }}
           GATEWAY_SECRET_KEY: ${{ secrets.GATEWAY_SECRET_KEY }}
         run: |
           VERSION="${{ steps.targets.outputs.version }}"
@@ -125,7 +125,7 @@ jobs:
             --jq '.id' 2>/dev/null || echo "")
           if [ -n "$GH_SERVER_DEPLOY_ID" ]; then
             gh api -X POST /repos/${{ github.repository }}/deployments/$GH_SERVER_DEPLOY_ID/statuses \
-              --input - <<< '{"state":"in_progress","environment_url":"https://central-gateway-server.onrender.com/api/v1/health","log_url":"https://dashboard.render.com","description":"Server '${{ steps.targets.outputs.version }}' building on Render..."}' || true
+              --input - <<< '{"state":"in_progress","environment_url":"https://central-gateway-server.vercel.app/api/v1/health","log_url":"https://vercel.com/thanhbas-projects","description":"Server '${{ steps.targets.outputs.version }}' building on Vercel..."}' || true
             echo "gh_server_deploy_id=$GH_SERVER_DEPLOY_ID" >> "$GITHUB_OUTPUT"
           fi
 
@@ -162,7 +162,7 @@ jobs:
             --jq '.id' 2>/dev/null || echo "")
           if [ -n "$GH_CLIENT_DEPLOY_ID" ]; then
             gh api -X POST /repos/${{ github.repository }}/deployments/$GH_CLIENT_DEPLOY_ID/statuses \
-              --input - <<< '{"state":"in_progress","environment_url":"https://central-gateway-client.onrender.com","log_url":"https://dashboard.render.com","description":"Client '${{ steps.targets.outputs.version }}' building on Render..."}' || true
+              --input - <<< '{"state":"in_progress","environment_url":"https://central-gateway-client.vercel.app","log_url":"https://vercel.com/thanhbas-projects","description":"Client '${{ steps.targets.outputs.version }}' building on Vercel..."}' || true
             echo "gh_client_deploy_id=$GH_CLIENT_DEPLOY_ID" >> "$GITHUB_OUTPUT"
           fi
 
@@ -206,7 +206,7 @@ jobs:
       - name: Notify Slack Deployment Result (#deployments)
         if: always()
         env:
-          GATEWAY_URL: ${{ secrets.GATEWAY_URL || 'https://central-gateway-server.onrender.com/api/v1' }}
+          GATEWAY_URL: ${{ secrets.GATEWAY_URL || 'https://central-gateway-server.vercel.app/api/v1' }}
           GATEWAY_SECRET_KEY: ${{ secrets.GATEWAY_SECRET_KEY }}
         run: |
           STATUS="FAIL"
@@ -228,8 +228,8 @@ jobs:
             "commit": "$COMMIT",
             "target": "Production ($SERVICE)",
             "actor": "$AUTHOR",
-            "appUrl": "https://central-gateway-client.onrender.com",
-            "healthUrl": "https://central-gateway-server.onrender.com/api/v1/health",
+            "appUrl": "https://central-gateway-client.vercel.app",
+            "healthUrl": "https://central-gateway-server.vercel.app/api/v1/health",
             "runUrl": "$RUN_URL"
           }
           EOF

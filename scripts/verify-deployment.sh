@@ -10,8 +10,8 @@ set -euo pipefail
 SERVICE="all"
 TARGET_VERSION=""
 TARGET_COMMIT=""
-SERVER_URL="https://central-gateway-server.onrender.com"
-CLIENT_URL="https://central-gateway-client.onrender.com"
+SERVER_URL="https://central-gateway-server.vercel.app"
+CLIENT_URL="https://central-gateway-client.vercel.app"
 TIMEOUT_SECONDS=600
 POLL_INTERVAL=10
 INITIAL_DELAY=15
@@ -105,8 +105,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 SERVICE="${SERVICE:-${TARGET_SERVICE:-all}}"
-SERVER_URL="${SERVER_URL:-${RENDER_SERVER_URL:-https://central-gateway-server.onrender.com}}"
-CLIENT_URL="${CLIENT_URL:-${RENDER_CLIENT_URL:-https://central-gateway-client.onrender.com}}"
+SERVER_URL="${SERVER_URL:-${RENDER_SERVER_URL:-https://central-gateway-server.vercel.app}}"
+CLIENT_URL="${CLIENT_URL:-${RENDER_CLIENT_URL:-https://central-gateway-client.vercel.app}}"
 TIMEOUT_SECONDS="${TIMEOUT_SECONDS:-600}"
 POLL_INTERVAL="${POLL_INTERVAL:-10}"
 INITIAL_DELAY="${INITIAL_DELAY:-15}"

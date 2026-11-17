@@ -132,7 +132,7 @@ async function main() {
       name: 'Wonderlab Platform',
       domain:
         process.env.NODE_ENV === 'production'
-          ? 'https://wonderlab-server.onrender.com'
+          ? 'https://wonderlab-server.vercel.app'
           : 'http://localhost:4101',
       apiPrefix: '/api/v1',
       apiKey: encryptS2SSecret('gw_to_wl_s2s_secret_2026'),
@@ -146,7 +146,7 @@ async function main() {
       name: 'Wonderlab Platform',
       domain:
         process.env.NODE_ENV === 'production'
-          ? 'https://wonderlab-server.onrender.com'
+          ? 'https://wonderlab-server.vercel.app'
           : 'http://localhost:4101',
       apiPrefix: '/api/v1',
       apiKey: encryptS2SSecret('gw_to_wl_s2s_secret_2026'),
