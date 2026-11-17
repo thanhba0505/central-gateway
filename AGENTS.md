@@ -18,13 +18,16 @@ Primary rules and engineering standards for AI coding assistants working in Cent
 
 ## 2. Security & Environment Standard
 
-- **Zero Secret Leaks**: Never commit `.env*` or API tokens. Secrets must be registered in GitHub Secrets and Render Environment Variables.
+- **Zero Secret Leaks**: Never commit `.env*` or API tokens. Secrets must be registered in GitHub Secrets and Vercel Environment Variables.
 - **Client Boundaries**: Only `NEXT_PUBLIC_*` variables allowed in client code; never expose `SLACK_BOT_TOKEN`, `DATABASE_URL`, or internal secret keys in client bundles.
 - **SSO Security Standard**:
   - OAuth2 Authorization Code Flow with PKCE (`S256` code challenge).
   - Strict redirect URI whitelisting against registered client applications.
   - Session cookies must be `HttpOnly`, `SameSite: Lax`, and `Secure` in production.
 - **API Guard**: Backend endpoints require `ApiKeyGuard` (Bearer token) or active user session guard.
+- **Production Database Safety & Migration Protocol**:
+  - STRICTLY FORBID executing manual or ad-hoc database migrations, schema pushes, or seed scripts (`prisma migrate deploy`, `prisma db push`, `prisma db seed`) directly against remote Neon production databases from local terminal or agent turns.
+  - Production database schema migrations must ONLY run automatically through the official Release workflow / CI/CD pipeline when releasing a new version (`v*.*.*`).
 
 ---
 
