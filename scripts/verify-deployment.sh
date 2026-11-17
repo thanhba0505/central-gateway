@@ -284,7 +284,7 @@ EOF
       echo "  ✅ Server is LIVE and HEALTHY (version: $SERVER_VER, elapsed: ${ELAPSED}s)"
       if [ -n "$GH_SERVER_DEPLOY_ID" ] && [ -n "$GH_REPO" ]; then
         gh api -X POST "/repos/$GH_REPO/deployments/$GH_SERVER_DEPLOY_ID/statuses" \
-          --input - <<< '{"state":"success","environment_url":"'$SERVER_URL'/api/v1/health","log_url":"https://dashboard.render.com","description":"Server healthy and live on Render"}' || true
+          --input - <<< '{"state":"success","environment_url":"'$SERVER_URL'/api/v1/health","log_url":"https://vercel.com/thanhbas-projects","description":"Server healthy and live on Vercel"}' || true
       fi
     fi
   fi
@@ -349,7 +349,7 @@ EOF
       echo "  ✅ Client is LIVE and HEALTHY (version: $CLIENT_VER, elapsed: ${ELAPSED}s)"
       if [ -n "$GH_CLIENT_DEPLOY_ID" ] && [ -n "$GH_REPO" ]; then
         gh api -X POST "/repos/$GH_REPO/deployments/$GH_CLIENT_DEPLOY_ID/statuses" \
-          --input - <<< '{"state":"success","environment_url":"'$CLIENT_URL'","log_url":"https://dashboard.render.com","description":"Client healthy and live on Render"}' || true
+          --input - <<< '{"state":"success","environment_url":"'$CLIENT_URL'","log_url":"https://vercel.com/thanhbas-projects","description":"Client healthy and live on Vercel"}' || true
       fi
     fi
   fi
