@@ -28,7 +28,7 @@ jobs:
 
       - name: Run Git Activity Notifier
         env:
-          GATEWAY_URL: ${{ secrets.GATEWAY_URL || 'https://central-gateway-server.onrender.com/api/v1' }}
+          GATEWAY_URL: ${{ secrets.GATEWAY_URL || 'https://central-gateway-server.vercel.app/api/v1' }}
           GATEWAY_SECRET_KEY: ${{ secrets.GATEWAY_SECRET_KEY }}
           EVENT_NAME: ${{ github.event_name }}
           REPO: ${{ github.repository }}

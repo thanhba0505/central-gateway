@@ -30,13 +30,13 @@ flowchart TD
 Rather than a single opaque status, Central Gateway tracks deployments granularly in GitHub's environment interface:
 
 1. **`production - server`**:
-   - Initialized as `in_progress` with an active loading spinner ⏳ as soon as the Render Deploy API is invoked.
-   - Points to `https://central-gateway-server.onrender.com/api/v1/health`.
+   - Initialized as `in_progress` with an active loading spinner ⏳ as soon as deployment is invoked.
+   - Points to `https://central-gateway-server.vercel.app/api/v1/health`.
    - Transitions to `success` 🟢 once backend health verifies database connectivity.
 
 2. **`production - client`**:
    - Initialized as `in_progress` ⏳ concurrently with the frontend build.
-   - Points to `https://central-gateway-client.onrender.com`.
+   - Points to `https://central-gateway-client.vercel.app`.
    - Transitions to `success` 🟢 once the Next.js control plane responds with HTTP 200.
 
 3. **`production`**:

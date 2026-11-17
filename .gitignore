@@ -13,3 +13,5 @@ coverage/
 !.env.example
 !**/.env.example
 .DS_Store
+.vercel
+.env*

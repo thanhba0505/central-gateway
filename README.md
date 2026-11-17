@@ -6,12 +6,12 @@
 
 [![CI Pipeline](https://github.com/thanhba0505/central-gateway/actions/workflows/ci.yml/badge.svg)](https://github.com/thanhba0505/central-gateway/actions/workflows/ci.yml)
 [![Latest Release](https://img.shields.io/github/v/release/thanhba0505/central-gateway?color=0284c7&label=Release)](https://github.com/thanhba0505/central-gateway/releases)
-[![Client Control Plane](https://img.shields.io/badge/Client-Live%20on%20Render-10b981?logo=render)](https://central-gateway-client.onrender.com)
-[![Server API](https://img.shields.io/badge/Server-API%20v1-0284c7?logo=nestjs)](https://central-gateway-server.onrender.com/api/v1)
-[![Swagger OpenAPI](https://img.shields.io/badge/Docs-Swagger%20OpenAPI-85ea2d?logo=swagger)](https://central-gateway-server.onrender.com/api/docs)
+[![Client Control Plane](https://img.shields.io/badge/Client-Live%20on%20Vercel-10b981?logo=vercel)](https://central-gateway-client.vercel.app)
+[![Server API](https://img.shields.io/badge/Server-API%20v1-0284c7?logo=nestjs)](https://central-gateway-server.vercel.app/api/v1)
+[![Swagger OpenAPI](https://img.shields.io/badge/Docs-Swagger%20OpenAPI-85ea2d?logo=swagger)](https://central-gateway-server.vercel.app/api/docs)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-[Control Plane](https://central-gateway-client.onrender.com) • [API Swagger](https://central-gateway-server.onrender.com/api/docs) • [Architecture Guide](docs/architecture.md) • [Slack Integration](docs/slack-integration.md)
+[Control Plane](https://central-gateway-client.vercel.app) • [API Swagger](https://central-gateway-server.vercel.app/api/docs) • [Architecture Guide](docs/architecture.md) • [Slack Integration](docs/slack-integration.md)
 
 </div>
 

@@ -1,6 +1,6 @@
 # Central Gateway REST API Reference
 
-Interactive OpenAPI documentation is live at [central-gateway-server.onrender.com/api/docs](https://central-gateway-server.onrender.com/api/docs).
+Interactive OpenAPI documentation is live at [central-gateway-server.vercel.app/api/docs](https://central-gateway-server.vercel.app/api/docs).
 
 All requests to `/api/v1/notifications/*` must include:
 

@@ -117,7 +117,7 @@ model DispatchLog {
    - Connected microservices and upstream repositories contain zero direct Slack credentials.
 
 3. **CORS Restrictions**:
-   - Configured via `CORS_ORIGINS` in `server/src/main.ts` with explicit domain whitelisting (`localhost:5000`, `localhost:5100`, `https://central-gateway-client.onrender.com`).
+   - Configured via `CORS_ORIGINS` in `server/src/main.ts` with explicit domain whitelisting (`localhost:5000`, `localhost:5100`, `https://central-gateway-client.vercel.app`).
 
 ---
 

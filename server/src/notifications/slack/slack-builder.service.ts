@@ -273,7 +273,7 @@ export class SlackBuilderService {
                 {
                   type: 'button',
                   text: { type: 'plain_text', text: '⚡ Open Control Plane' },
-                  url: 'https://central-gateway-client.onrender.com',
+                  url: 'https://central-gateway-client.vercel.app',
                   style: 'primary',
                 },
               ],

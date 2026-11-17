@@ -1,5 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { generateS2SSignature, normalizeS2SPath } from './s2s-crypto.util';
+import { decryptS2SSecret } from './s2s-vault.util';
 
 export interface S2SCallOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -34,20 +36,35 @@ export class S2SService {
     const cleanPrefix = conn.apiPrefix.replace(/\/$/, '');
     const cleanPath = endpointPath.replace(/^\//, '');
     const fullUrl = `${cleanDomain}${cleanPrefix}/${cleanPath}`;
+    const normalizedTargetUrlPath = `${cleanPrefix}/${cleanPath}`;
 
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
-
-    if (conn.apiKey) {
-      headers['Authorization'] = `Bearer ${conn.apiKey}`;
+    const rawApiKey = decryptS2SSecret(conn.apiKey);
+    if (!rawApiKey) {
+      throw new Error(
+        `[S2S] Service connection '${targetSlug}' does not have an apiKey configured`,
+      );
     }
 
     const method = options.method ?? 'GET';
+    const timestamp = Date.now().toString();
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'X-S2S-Service': 'central-gateway',
+      'X-S2S-Timestamp': timestamp,
+      'X-S2S-Signature': generateS2SSignature(
+        rawApiKey,
+        timestamp,
+        method,
+        normalizeS2SPath(normalizedTargetUrlPath),
+        options.data,
+      ),
+      ...options.headers,
+    };
+
     const timeout = options.timeoutMs ?? conn.timeoutMs;
 
-    this.logger.log(`[S2S] Calling ${targetSlug} via ${method} ${fullUrl}`);
+    this.logger.log(`[S2S] Calling ${targetSlug} via ${method} ${fullUrl} (HMAC-Signed)`);
 
     const response = await fetch(fullUrl, {
       method,

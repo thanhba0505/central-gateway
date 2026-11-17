@@ -67,7 +67,7 @@ In your upstream project's GitHub Actions workflow:
 ```yaml
 - name: Notify Slack Deployment Started
   env:
-    GATEWAY_URL: 'https://central-gateway-server.onrender.com/api/v1'
+    GATEWAY_URL: 'https://central-gateway-server.vercel.app/api/v1'
     GATEWAY_SECRET_KEY: ${{ secrets.GATEWAY_SECRET_KEY }}
   run: |
     curl -s -X POST "$GATEWAY_URL/notifications/slack/deploy" \
