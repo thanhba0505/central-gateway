@@ -3,8 +3,8 @@ set -euo pipefail
 
 # ==============================================================================
 # Central Gateway — Production Deployment Verification Script
-# Polls live health endpoints on Render until services are healthy and updated,
-# with early fail-fast on Render build crashes and live GitHub Deployments sync.
+# Polls live health endpoints on Vercel until services are healthy and updated,
+# with live GitHub Deployments sync.
 # ==============================================================================
 
 SERVICE="all"
@@ -16,12 +16,6 @@ TIMEOUT_SECONDS=600
 POLL_INTERVAL=10
 INITIAL_DELAY=15
 MIN_ROLLOUT_WAIT=30
-
-RENDER_API_KEY="${RENDER_API_KEY:-}"
-RENDER_SERVER_SERVICE_ID="${RENDER_SERVER_SERVICE_ID:-}"
-RENDER_SERVER_DEPLOY_ID="${RENDER_SERVER_DEPLOY_ID:-}"
-RENDER_CLIENT_SERVICE_ID="${RENDER_CLIENT_SERVICE_ID:-}"
-RENDER_CLIENT_DEPLOY_ID="${RENDER_CLIENT_DEPLOY_ID:-}"
 
 GH_REPO="${GH_REPO:-${GITHUB_REPOSITORY:-}}"
 GH_SERVER_DEPLOY_ID="${GH_SERVER_DEPLOY_ID:-}"
@@ -65,26 +59,6 @@ while [[ $# -gt 0 ]]; do
       MIN_ROLLOUT_WAIT="$2"
       shift 2
       ;;
-    --render-api-key)
-      RENDER_API_KEY="$2"
-      shift 2
-      ;;
-    --server-service-id)
-      RENDER_SERVER_SERVICE_ID="$2"
-      shift 2
-      ;;
-    --server-deploy-id)
-      RENDER_SERVER_DEPLOY_ID="$2"
-      shift 2
-      ;;
-    --client-service-id)
-      RENDER_CLIENT_SERVICE_ID="$2"
-      shift 2
-      ;;
-    --client-deploy-id)
-      RENDER_CLIENT_DEPLOY_ID="$2"
-      shift 2
-      ;;
     --gh-repo)
       GH_REPO="$2"
       shift 2
@@ -105,8 +79,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 SERVICE="${SERVICE:-${TARGET_SERVICE:-all}}"
-SERVER_URL="${SERVER_URL:-${RENDER_SERVER_URL:-https://central-gateway-server.vercel.app}}"
-CLIENT_URL="${CLIENT_URL:-${RENDER_CLIENT_URL:-https://central-gateway-client.vercel.app}}"
+SERVER_URL="${SERVER_URL:-https://central-gateway-server.vercel.app}"
+CLIENT_URL="${CLIENT_URL:-https://central-gateway-client.vercel.app}"
 TIMEOUT_SECONDS="${TIMEOUT_SECONDS:-600}"
 POLL_INTERVAL="${POLL_INTERVAL:-10}"
 INITIAL_DELAY="${INITIAL_DELAY:-15}"
@@ -134,7 +108,6 @@ echo "Client Endpoint      : $CLIENT_URL/health"
 echo "Timeout              : ${TIMEOUT_SECONDS}s (poll every ${POLL_INTERVAL}s)"
 echo "Initial Delay        : ${INITIAL_DELAY}s"
 echo "Min Rollout Wait     : ${MIN_ROLLOUT_WAIT}s"
-echo "Render Fail-Fast     : $([ -n "$RENDER_API_KEY" ] && echo "Active" || echo "Inactive")"
 echo "GitHub Live Sync     : $([ -n "$GH_REPO" ] && echo "Active" || echo "Inactive")"
 echo "=================================================================="
 
@@ -149,7 +122,7 @@ echo "  Initial Live Server Version : $INITIAL_SERVER_VER"
 echo "  Initial Live Client Version : $INITIAL_CLIENT_VER"
 
 if [ "$INITIAL_DELAY" -gt 0 ]; then
-  echo "⏳ Warmup pause (${INITIAL_DELAY}s) for Render build queue initiation..."
+  echo "⏳ Warmup pause (${INITIAL_DELAY}s) for Vercel build queue initiation..."
   sleep "$INITIAL_DELAY"
 fi
 
@@ -171,43 +144,12 @@ while true; do
   CURRENT_TIME=$(date +%s)
   ELAPSED=$((CURRENT_TIME - START_TIME))
 
-  # Early Fail-Fast Check via Render API
-  if [ "$SERVER_OK" = false ] && [ -n "$RENDER_API_KEY" ] && [ -n "$RENDER_SERVER_SERVICE_ID" ] && [ -n "$RENDER_SERVER_DEPLOY_ID" ]; then
-    SERVER_RENDER_STATUS=$(curl -s --max-time 10 -H "Authorization: Bearer $RENDER_API_KEY" \
-      "https://api.render.com/v1/services/$RENDER_SERVER_SERVICE_ID/deploys/$RENDER_SERVER_DEPLOY_ID" | \
-      node -p "JSON.parse(require('fs').readFileSync(0,'utf-8')).status || ''" 2>/dev/null || echo "")
-    
-    if [[ "$SERVER_RENDER_STATUS" =~ ^(build_failed|pre_deploy_failed|canceled|deactivated)$ ]]; then
-      echo "::error::❌ Render server deployment failed early with status: $SERVER_RENDER_STATUS"
-      if [ -n "$GH_SERVER_DEPLOY_ID" ] && [ -n "$GH_REPO" ]; then
-        gh api -X POST "/repos/$GH_REPO/deployments/$GH_SERVER_DEPLOY_ID/statuses" \
-          --input - <<< '{"state":"failure","description":"Server build failed on Render ('$SERVER_RENDER_STATUS')","log_url":"https://dashboard.render.com"}' || true
-      fi
-      exit 1
-    fi
-  fi
-
-  if [ "$CLIENT_OK" = false ] && [ -n "$RENDER_API_KEY" ] && [ -n "$RENDER_CLIENT_SERVICE_ID" ] && [ -n "$RENDER_CLIENT_DEPLOY_ID" ]; then
-    CLIENT_RENDER_STATUS=$(curl -s --max-time 10 -H "Authorization: Bearer $RENDER_API_KEY" \
-      "https://api.render.com/v1/services/$RENDER_CLIENT_SERVICE_ID/deploys/$RENDER_CLIENT_DEPLOY_ID" | \
-      node -p "JSON.parse(require('fs').readFileSync(0,'utf-8')).status || ''" 2>/dev/null || echo "")
-    
-    if [[ "$CLIENT_RENDER_STATUS" =~ ^(build_failed|pre_deploy_failed|canceled|deactivated)$ ]]; then
-      echo "::error::❌ Render client deployment failed early with status: $CLIENT_RENDER_STATUS"
-      if [ -n "$GH_CLIENT_DEPLOY_ID" ] && [ -n "$GH_REPO" ]; then
-        gh api -X POST "/repos/$GH_REPO/deployments/$GH_CLIENT_DEPLOY_ID/statuses" \
-          --input - <<< '{"state":"failure","description":"Client build failed on Render ('$CLIENT_RENDER_STATUS')","log_url":"https://dashboard.render.com"}' || true
-      fi
-      exit 1
-    fi
-  fi
-
   if [ "$ELAPSED" -ge "$TIMEOUT_SECONDS" ]; then
     echo "❌ Deployment verification timed out after ${ELAPSED}s!"
     echo "=================================================================="
     echo "Last known server response: $LAST_SERVER_STATUS"
     echo "Last known client response: $LAST_CLIENT_STATUS"
-    echo "Please inspect build logs on Render Dashboard: https://dashboard.render.com"
+    echo "Please inspect build logs on Vercel Dashboard: https://vercel.com/thanhbas-projects"
     echo "=================================================================="
 
     if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
@@ -385,6 +327,6 @@ EOF
     exit 0
   fi
 
-  echo "  [${ELAPSED}s] Polling Render rollout... (Server OK: $SERVER_OK, Client OK: $CLIENT_OK)"
+  echo "  [${ELAPSED}s] Polling Vercel rollout... (Server OK: $SERVER_OK, Client OK: $CLIENT_OK)"
   sleep "$POLL_INTERVAL"
 done

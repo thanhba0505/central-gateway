@@ -72,9 +72,7 @@ export function getApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
     return '/api/proxy';
   }
-  return (
-    process.env.NEXT_PUBLIC_API_BASE_URL || 'https://central-gateway-server.onrender.com/api/v1'
-  );
+  return process.env.NEXT_PUBLIC_API_BASE_URL || 'https://central-gateway-server.vercel.app/api/v1';
 }
 
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {

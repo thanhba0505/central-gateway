@@ -79,9 +79,8 @@ Primary rules and engineering standards for AI coding assistants working in Cent
 - **Automated Production Releases**:
   - Release published or tag `v*.*.*` triggers `.github/workflows/deploy.yml`.
   - Auto-syncs `develop` into `main`, syncs version across `package.json` and lockfiles.
-  - Deploys via Render REST API (`POST /v1/services/{id}/deploys`).
+  - Deploys via Vercel Deploy Hooks.
   - Records real-time GitHub Deployment environments:
-    - ⏳ / 🟢 `production - server`
-    - ⏳ / 🟢 `production - client`
-    - ⏳ / 🟢 `production` (overall)
+    - ⏳ / 🟢 `main - central-gateway-server`
+    - ⏳ / 🟢 `main - central-gateway-client`
   - Runs fail-fast verification via `scripts/verify-deployment.sh` and sends real-time alerts to Slack `#deployments`.
