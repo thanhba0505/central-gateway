@@ -12,6 +12,8 @@ export interface SafeUser {
   avatarUrl: string | null;
   isEmailVerified: boolean;
   isActive: boolean;
+  hasPassword?: boolean;
+  isGoogleLinked?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -176,5 +178,26 @@ export class UsersService {
     });
 
     return updated;
+  }
+
+  async findById(id: string): Promise<SafeUser> {
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException(`User with ID '${id}' not found`);
+    }
+
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      avatarUrl: user.avatarUrl,
+      isEmailVerified: user.isEmailVerified,
+      isActive: user.isActive,
+      hasPassword: Boolean(user.passwordHash),
+      isGoogleLinked: Boolean(user.googleId),
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
   }
 }

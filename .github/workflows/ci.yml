@@ -128,7 +128,7 @@ jobs:
           U_UP=$(echo "$UNIT_STATUS" | tr "[:lower:]" "[:upper:]")
           B_UP=$(echo "$BUILD_STATUS" | tr "[:lower:]" "[:upper:]")
 
-          curl -s -X POST "https://central-gateway-server.onrender.com/api/v1/notifications/slack/ci" \
+          curl -s -X POST "https://central-gateway-server.vercel.app/api/v1/notifications/slack/ci" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $GATEWAY_SECRET_KEY" \
             -d '{

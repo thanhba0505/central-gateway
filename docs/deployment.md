@@ -1,78 +1,69 @@
 # Deployment Architecture & Operations Guide
 
-Production deployments in **Central Gateway** are fully automated, monitored, and orchestrated across GitHub Actions, Render REST API, and Slack notifications.
+Production deployments in **Central Gateway** are fully automated, monitored, and orchestrated across GitHub Actions, Vercel Serverless Deploy Hooks, Neon Lakebase PostgreSQL, and Slack notifications.
 
 ---
 
 ## 1. High-Level Rollout Architecture
 
-Production deployment is triggered exclusively by publishing a GitHub Release (`v*.*.*`) or pushing a matching tag.
+Production deployment is triggered exclusively by publishing an official GitHub Release (`v*.*.*`) or pushing a matching tag.
 
 ```mermaid
 flowchart TD
-  Release["GitHub Release Published (vX.Y.Z)"] --> SyncVersion["sync-release-version.sh (Sync main & develop)"]
-  SyncVersion --> NotifyStart["Notify Slack #deployments (STARTED)"]
-  NotifyStart --> TriggerServer["Trigger Render API (central-gateway-server)"]
-  TriggerServer --> GHServerState["Create GitHub Deployment (production - server: in_progress ⏳)"]
-  GHServerState --> TriggerClient["Trigger Render API (central-gateway-client)"]
-  TriggerClient --> GHClientState["Create GitHub Deployment (production - client: in_progress ⏳)"]
-  GHClientState --> GHProdState["Create GitHub Deployment (production: in_progress ⏳)"]
-  GHProdState --> Polling["verify-deployment.sh (Polling Render Deploy Status & Health)"]
-  Polling -->|Render Build Fails| FailFast["Early Termination ❌ (Mark Failure immediately)"]
-  Polling -->|Health Check 200 + Live| Complete["Mark Environments Success 🟢"]
-  Complete --> NotifyEnd["Notify Slack #deployments (DEPLOYED / FAILED)"]
+  Release["GitHub Release Published (vX.Y.Z)"] --> SyncVersion["sync-release-version.sh (Sync develop into main & Bump Version)"]
+  SyncVersion --> NotifyStart["Notify Slack #deployments (STARTED via Central Gateway)"]
+  NotifyStart --> TriggerServer["Trigger Vercel Deploy Hook (central-gateway-server)"]
+  TriggerServer --> GHServerState["Create GitHub Deployment (main - central-gateway-server: in_progress ⏳)"]
+  GHServerState --> TriggerClient["Trigger Vercel Deploy Hook (central-gateway-client)"]
+  TriggerClient --> GHClientState["Create GitHub Deployment (main - central-gateway-client: in_progress ⏳)"]
+  GHClientState --> Polling["verify-deployment.sh (Polling Vercel Live Health Endpoints)"]
+  Polling -->|Vercel Build Fails or Timeout| FailFast["Early Termination ❌ (Mark Deployment Failure)"]
+  Polling -->|Health Check 200 + DB Connected| Complete["Mark Environments Success 🟢"]
+  Complete --> NotifyEnd["Notify Slack #deployments (DEPLOYED / FAILED via Central Gateway)"]
 ```
 
 ---
 
-## 2. Multi-Tier GitHub Deployments
+## 2. Infrastructure Specifications
 
-Rather than a single opaque status, Central Gateway tracks deployments granularly in GitHub's environment interface:
+### 1. `central-gateway-client` (Frontend)
 
-1. **`production - server`**:
-   - Initialized as `in_progress` with an active loading spinner ⏳ as soon as deployment is invoked.
-   - Points to `https://central-gateway-server.vercel.app/api/v1/health`.
-   - Transitions to `success` 🟢 once backend health verifies database connectivity.
+- **Platform**: Vercel (`central-gateway-client`)
+- **Framework**: Next.js 15 (App Router), React 19
+- **Production URL**: [central-gateway-client.vercel.app](https://central-gateway-client.vercel.app)
+- **Health Check**: `/health`
 
-2. **`production - client`**:
-   - Initialized as `in_progress` ⏳ concurrently with the frontend build.
-   - Points to `https://central-gateway-client.vercel.app`.
-   - Transitions to `success` 🟢 once the Next.js control plane responds with HTTP 200.
+### 2. `central-gateway-server` (Backend)
 
-3. **`production`**:
-   - High-level environment pill representing overall system readiness.
-   - Marked `success` 🟢 only when all target services are verified healthy.
+- **Platform**: Vercel Serverless Functions (`central-gateway-server`)
+- **Framework**: NestJS 10, Prisma ORM
+- **Production URL**: [central-gateway-server.vercel.app/api/v1](https://central-gateway-server.vercel.app/api/v1)
+- **Swagger Docs**: [central-gateway-server.vercel.app/api/docs](https://central-gateway-server.vercel.app/api/docs)
+- **Health Check**: `/api/v1/health`
 
----
+### 3. Database Layer
 
-## 3. Render REST API Integration
-
-Deployments bypass legacy webhooks in favor of authenticated Render REST API calls:
-
-- **Endpoint**: `POST https://api.render.com/v1/services/{service_id}/deploys`
-- **Authentication**: `Authorization: Bearer ${{ secrets.RENDER_API_KEY }}`
-- **Benefits**:
-  - Immediate return of `deploy_id` for fine-grained status tracking.
-  - Ability to monitor build status (`build_in_progress`, `live`, `build_failed`, `canceled`).
+- **Provider**: Neon Lakebase PostgreSQL 16 (AWS Oregon `us-west-2`)
+- **Connection Strategy**: PgBouncer connection pooling via `DATABASE_URL` for serverless scaling.
+- **Migration Protocol**: Schema migrations run automatically during CI/CD release builds (`prisma migrate deploy`). Manual or ad-hoc migrations from local agent turns are strictly forbidden.
 
 ---
 
-## 4. Fail-Fast Verification (`scripts/verify-deployment.sh`)
+## 3. Real-Time Deployment Verification
 
-Traditional deployment scripts rely solely on HTTP endpoint polling. When a build fails on Render, the previous container remains live, causing health probes to return `200` for stale code until a lengthy timeout expires.
+The deployment pipeline executes `scripts/verify-deployment.sh` to poll live health probes and synchronize GitHub Deployments:
 
-Our verification engine monitors Render's internal deployment lifecycle:
+```bash
+./scripts/verify-deployment.sh \
+  --service all \
+  --version "0.4.1" \
+  --commit "$RELEASE_COMMIT" \
+  --gh-repo "thanhba0505/central-gateway" \
+  --timeout 600 \
+  --interval 10
+```
 
-- Queries `GET https://api.render.com/v1/services/{id}/deploys/{deploy_id}` every 10 seconds.
-- Detects terminal states immediately: `build_failed`, `pre_deploy_failed`, `canceled`, or `deactivated`.
-- Automatically marks the respective GitHub Deployment as `failure` ❌ within 15–30 seconds.
-- Polls live health endpoints to verify that the deployed version matches the target release tag.
-
----
-
-## 5. Automated Slack Notifications
-
-All deployment transitions route through Central Gateway's own notification engine to `#deployments`:
-
-- **Started**: Dispatched immediately upon workflow initiation with release version, target commit hash, and workflow run link.
-- **Finished (Success/Failure)**: Summarizes rollout duration, individual service status, and direct health URLs.
+1. **Initialization**: Immediately registers GitHub Deployments for `main - central-gateway-server` and `main - central-gateway-client` with `state: in_progress` ⏳.
+2. **Health Verification**: Periodically probes `/api/v1/health` and `/health` until HTTP 200 and version matching are confirmed.
+3. **Success Transition**: Transitions environment status to `success` 🟢 upon verified rollout.
+4. **Failure Safeguard**: On timeout or build error, marks environment status `failure` ❌ and dispatches an alert to Slack `#deployments`.

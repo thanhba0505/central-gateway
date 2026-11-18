@@ -30,6 +30,13 @@ export class UsersController {
     return this.usersService.findAll(query);
   }
 
+  @Get(':id')
+  @ApiOperation({ summary: 'Get single user profile by id' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'User profile' })
+  async getUser(@Param('id') id: string): Promise<SafeUser> {
+    return this.usersService.findById(id);
+  }
+
   @Patch(':id/status')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Toggle user active/inactive status' })

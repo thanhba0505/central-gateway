@@ -5,7 +5,7 @@ import sys
 import urllib.request
 import urllib.error
 
-gateway_url = os.environ.get("GATEWAY_URL", "https://central-gateway-server.onrender.com/api/v1")
+gateway_url = os.environ.get("GATEWAY_URL", "https://central-gateway-server.vercel.app/api/v1")
 gateway_secret = os.environ.get("GATEWAY_SECRET_KEY")
 
 event_name = os.environ.get("EVENT_NAME", "")

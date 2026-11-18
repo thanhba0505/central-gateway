@@ -7,6 +7,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { OAuth2Client } from 'google-auth-library';
 import * as argon2 from 'argon2';
 import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -24,6 +25,8 @@ export interface SanitizedUser {
   avatarUrl: string | null;
   isEmailVerified: boolean;
   isActive: boolean;
+  hasPassword: boolean;
+  isGoogleLinked: boolean;
   createdAt: Date;
 }
 
@@ -229,26 +232,82 @@ export class AuthService {
     return this.sanitizeUser(updated);
   }
 
+  private googleClient: OAuth2Client | null = null;
+
+  private getGoogleClient(): OAuth2Client {
+    if (!this.googleClient) {
+      const clientId = process.env.GOOGLE_CLIENT_ID;
+      this.googleClient = new OAuth2Client(clientId);
+    }
+    return this.googleClient;
+  }
+
   /**
    * Google OAuth authentication
    */
   async googleLogin(dto: GoogleLoginDto): Promise<SanitizedUser> {
+    if (process.env.NODE_ENV === 'production' && !dto.credential) {
+      throw new BadRequestException('Google credential is required in production');
+    }
+
     let email = dto.email?.toLowerCase().trim();
     let name = dto.name?.trim();
     let googleId = dto.googleId?.trim();
     let avatarUrl = dto.avatarUrl?.trim();
 
-    if (dto.credential && (!email || !googleId)) {
-      try {
-        const decoded = this.jwtService.decode(dto.credential) as Record<string, unknown> | null;
-        if (decoded) {
-          if (typeof decoded.email === 'string') email = decoded.email.toLowerCase().trim();
-          if (typeof decoded.name === 'string') name = decoded.name.trim();
-          if (typeof decoded.sub === 'string') googleId = decoded.sub.trim();
-          if (typeof decoded.picture === 'string') avatarUrl = decoded.picture.trim();
+    if (dto.credential) {
+      const clientId = process.env.GOOGLE_CLIENT_ID;
+      if (clientId) {
+        try {
+          const client = this.getGoogleClient();
+          const ticket = await client.verifyIdToken({
+            idToken: dto.credential,
+            audience: clientId,
+          });
+          const payload = ticket.getPayload();
+          if (payload && payload.email && payload.sub) {
+            email = payload.email.toLowerCase().trim();
+            googleId = payload.sub.trim();
+            if (payload.name) name = payload.name.trim();
+            if (payload.picture) avatarUrl = payload.picture.trim();
+          } else {
+            throw new UnauthorizedException('Invalid Google ID token payload');
+          }
+        } catch {
+          if (process.env.NODE_ENV === 'production') {
+            throw new UnauthorizedException('Google ID token verification failed');
+          }
+          // In development/test, fallback to decoding if verify fails
+          try {
+            const decoded = this.jwtService.decode(dto.credential) as Record<
+              string,
+              unknown
+            > | null;
+            if (decoded) {
+              if (typeof decoded.email === 'string') email = decoded.email.toLowerCase().trim();
+              if (typeof decoded.name === 'string') name = decoded.name.trim();
+              if (typeof decoded.sub === 'string') googleId = decoded.sub.trim();
+              if (typeof decoded.picture === 'string') avatarUrl = decoded.picture.trim();
+            }
+          } catch {
+            throw new UnauthorizedException('Invalid Google ID token');
+          }
         }
-      } catch {
-        // Fallback
+      } else {
+        if (process.env.NODE_ENV === 'production') {
+          throw new UnauthorizedException('Google authentication is not configured');
+        }
+        try {
+          const decoded = this.jwtService.decode(dto.credential) as Record<string, unknown> | null;
+          if (decoded) {
+            if (typeof decoded.email === 'string') email = decoded.email.toLowerCase().trim();
+            if (typeof decoded.name === 'string') name = decoded.name.trim();
+            if (typeof decoded.sub === 'string') googleId = decoded.sub.trim();
+            if (typeof decoded.picture === 'string') avatarUrl = decoded.picture.trim();
+          }
+        } catch {
+          // Fallback
+        }
       }
     }
 
@@ -324,6 +383,8 @@ export class AuthService {
     isEmailVerified: boolean;
     isActive: boolean;
     createdAt: Date;
+    passwordHash?: string | null;
+    googleId?: string | null;
   }): SanitizedUser {
     return {
       id: user.id,
@@ -333,6 +394,8 @@ export class AuthService {
       avatarUrl: user.avatarUrl,
       isEmailVerified: user.isEmailVerified,
       isActive: user.isActive,
+      hasPassword: Boolean(user.passwordHash),
+      isGoogleLinked: Boolean(user.googleId),
       createdAt: user.createdAt,
     };
   }

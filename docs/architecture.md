@@ -14,7 +14,7 @@ graph TD
     end
 
     subgraph Ingress ["API Gateway Ingress"]
-        E["Cloudflare / Render Edge"]
+        E["Cloudflare / Vercel Edge"]
         F["NestJS 10 Application"]
         G["ApiKeyGuard (Bearer Authentication)"]
     end
@@ -113,7 +113,7 @@ model DispatchLog {
    - Guarded by NestJS `ApiKeyGuard`. Unauthorized requests immediately return `401 Unauthorized`.
 
 2. **Zero Secret Leakage**:
-   - `SLACK_BOT_TOKEN`, `DATABASE_URL`, and internal Render Service IDs are strictly isolated to Central Gateway environment variables.
+   - `SLACK_BOT_TOKEN`, `DATABASE_URL`, and internal API secrets are strictly isolated to Central Gateway environment variables.
    - Connected microservices and upstream repositories contain zero direct Slack credentials.
 
 3. **CORS Restrictions**:
