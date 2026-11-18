@@ -146,6 +146,7 @@ export interface AuthDictionary {
   register_btn: string;
   registering: string;
   passwords_mismatch: string;
+  dev_db_test_account: string;
 }
 
 export interface AdminGuardDictionary {
