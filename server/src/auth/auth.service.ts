@@ -25,6 +25,8 @@ export interface SanitizedUser {
   avatarUrl: string | null;
   isEmailVerified: boolean;
   isActive: boolean;
+  hasPassword: boolean;
+  isGoogleLinked: boolean;
   createdAt: Date;
 }
 
@@ -381,6 +383,8 @@ export class AuthService {
     isEmailVerified: boolean;
     isActive: boolean;
     createdAt: Date;
+    passwordHash?: string | null;
+    googleId?: string | null;
   }): SanitizedUser {
     return {
       id: user.id,
@@ -390,6 +394,8 @@ export class AuthService {
       avatarUrl: user.avatarUrl,
       isEmailVerified: user.isEmailVerified,
       isActive: user.isActive,
+      hasPassword: Boolean(user.passwordHash),
+      isGoogleLinked: Boolean(user.googleId),
       createdAt: user.createdAt,
     };
   }

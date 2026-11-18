@@ -42,6 +42,8 @@ export interface CurrentUser {
   avatarUrl: string | null;
   isEmailVerified: boolean;
   isActive: boolean;
+  hasPassword?: boolean;
+  isGoogleLinked?: boolean;
   createdAt: string;
 }
 

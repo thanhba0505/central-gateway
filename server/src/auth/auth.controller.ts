@@ -173,6 +173,8 @@ export class AuthController {
         avatarUrl: decoded.avatarUrl ?? null,
         isEmailVerified: decoded.isEmailVerified ?? false,
         isActive: decoded.isActive ?? true,
+        hasPassword: Boolean(decoded.hasPassword),
+        isGoogleLinked: Boolean(decoded.isGoogleLinked),
         createdAt: new Date(),
       };
     } catch {
