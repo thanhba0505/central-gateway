@@ -105,6 +105,49 @@ describe('AuthService', () => {
       expect(result.id).toBe('new-user-1');
       expect(prismaMock.user.create).toHaveBeenCalled();
     });
+
+    it('should verify google credential token via OAuth2Client', async () => {
+      process.env.GOOGLE_CLIENT_ID = 'mock-google-client-id.apps.googleusercontent.com';
+      const mockPayload = {
+        sub: 'google_sub_999',
+        email: 'verified@example.com',
+        name: 'Verified User',
+        picture: 'https://lh3.googleusercontent.com/avatar.jpg',
+      };
+
+      const mockVerifyIdToken = jest.fn().mockResolvedValue({
+        getPayload: () => mockPayload,
+      });
+
+      // Inject mocked client
+      (service as unknown as { googleClient: unknown }).googleClient = {
+        verifyIdToken: mockVerifyIdToken,
+      };
+
+      prismaMock.user.findFirst.mockResolvedValue(null);
+      prismaMock.user.findUnique.mockResolvedValue(null);
+      prismaMock.user.create.mockResolvedValue({
+        id: 'new-verified-user',
+        username: 'verified_user',
+        email: 'verified@example.com',
+        role: 'USER',
+        googleId: 'google_sub_999',
+        avatarUrl: 'https://lh3.googleusercontent.com/avatar.jpg',
+        isEmailVerified: true,
+        isActive: true,
+        createdAt: new Date(),
+      });
+
+      const result = await service.googleLogin({
+        credential: 'valid-google-id-token',
+      });
+
+      expect(mockVerifyIdToken).toHaveBeenCalledWith({
+        idToken: 'valid-google-id-token',
+        audience: 'mock-google-client-id.apps.googleusercontent.com',
+      });
+      expect(result.email).toBe('verified@example.com');
+    });
   });
 
   describe('updateProfile', () => {
