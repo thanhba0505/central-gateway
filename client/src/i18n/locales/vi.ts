@@ -143,6 +143,7 @@ export const vi: TranslationDictionary = {
     register_btn: 'Đăng ký Tài khoản',
     registering: 'Đang xử lý...',
     passwords_mismatch: 'Mật khẩu xác nhận không khớp',
+    dev_db_test_account: 'Chọn tài khoản trong DB để test (Local Dev)',
   },
   admin_guard: {
     authenticating: 'Xác thực phiên quản trị Central Gateway...',

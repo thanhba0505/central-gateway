@@ -227,7 +227,7 @@ function LoginForm() {
               className="w-full mb-4 flex items-center justify-center gap-2 rounded-2xl border border-amber-400/40 bg-amber-500/15 px-4 py-2.5 text-xs font-semibold text-amber-200 hover:bg-amber-500/25 hover:border-amber-400/60 transition shadow-sm cursor-pointer disabled:opacity-50"
             >
               <Database className="h-4 w-4 text-amber-300" />
-              Chọn tài khoản trong DB để test (Local Dev)
+              {dict.auth.dev_db_test_account}
             </button>
           )}
 

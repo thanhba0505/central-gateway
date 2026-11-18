@@ -142,6 +142,7 @@ export const en: TranslationDictionary = {
     register_btn: 'Create Account',
     registering: 'Processing...',
     passwords_mismatch: 'Passwords do not match',
+    dev_db_test_account: 'Select test account from DB (Local Dev)',
   },
   admin_guard: {
     authenticating: 'Authenticating Central Gateway admin session...',
