@@ -28,7 +28,7 @@ Central Gateway uses a trunk-based workflow targeting `develop`:
 
 1. **Branch Off `origin/develop`**:
    ```bash
-   cd /Users/lethanhba/workspace/app/central-gateway
+   cd central-gateway
    git fetch origin
    git checkout -B <type>/<task-name> origin/develop
    ```
