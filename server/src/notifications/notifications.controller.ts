@@ -8,11 +8,11 @@ import {
   SendTestNotificationDto,
   SendGitNotificationDto,
 } from './dto/notification.dto';
-import { ApiKeyGuard } from '../auth/api-key.guard';
+import { NotificationAuthGuard } from './notification-auth.guard';
 
 @ApiTags('notifications')
 @ApiBearerAuth()
-@UseGuards(ApiKeyGuard)
+@UseGuards(NotificationAuthGuard)
 @Controller('notifications/slack')
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}

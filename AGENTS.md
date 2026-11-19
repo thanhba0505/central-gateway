@@ -24,7 +24,7 @@ Primary rules and engineering standards for AI coding assistants working in Cent
   - OAuth2 Authorization Code Flow with PKCE (`S256` code challenge).
   - Strict redirect URI whitelisting against registered client applications.
   - Session cookies must be `HttpOnly`, `SameSite: Lax`, and `Secure` in production.
-- **API Guard**: Backend endpoints require `ApiKeyGuard` (Bearer token) or active user session guard.
+- **API Guard**: Backend S2S IAM endpoints enforce `ApiKeyGuard` (strict HMAC-SHA256 signatures); notification endpoints use `NotificationAuthGuard` (S2S HMAC-SHA256 or timing-safe `Bearer GATEWAY_SECRET_KEY` for CI/CD workflows); admin/user management uses `AdminOrS2SGuard` (`ADMIN` session cookie, S2S HMAC-SHA256, or timing-safe `Bearer GATEWAY_SECRET_KEY`).
 - **Production Database Safety & Migration Protocol**:
   - STRICTLY FORBID executing manual or ad-hoc database migrations, schema pushes, or seed scripts (`prisma migrate deploy`, `prisma db push`, `prisma db seed`) directly against remote Neon production databases from local terminal or agent turns.
   - Production database schema migrations must ONLY run automatically through the official Release workflow / CI/CD pipeline when releasing a new version (`v*.*.*`).

@@ -77,4 +77,20 @@ describe('SlackBuilderService', () => {
     expect(payload.blocks[0]?.type).toBe('header');
     expect(payload.attachments[0]?.color).toBe('#8b5cf6');
   });
+
+  it('should build valid GitHub commit links in CI payload for central-gateway and git-pulse', () => {
+    const ciPayload = service.buildCiPayload('C0CGL8EBFT2', {
+      project: 'git-pulse',
+      status: 'SUCCESS',
+      branch: 'develop',
+      commit: 'fddfb1fcbde514d76a9d4c46a78ae15cf6df19e5',
+      trigger: 'push by @thanhba0505',
+      pipeline: { 'Quality & Types': 'SUCCESS' },
+      runUrl: 'https://github.com/thanhba0505/git-pulse/actions/runs/123',
+    });
+
+    const bodyText = JSON.stringify(ciPayload);
+    expect(bodyText).toContain('https://github.com/thanhba0505/git-pulse/commit/');
+    expect(ciPayload.attachments[0]?.color).toBe('#10b981');
+  });
 });
