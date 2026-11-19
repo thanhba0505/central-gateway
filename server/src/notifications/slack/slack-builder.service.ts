@@ -11,9 +11,17 @@ import {
 export class SlackBuilderService {
   private readonly logger = new Logger(SlackBuilderService.name);
 
+  private resolveRepoSlug(project: string): string {
+    const normalized = project.trim();
+    if (normalized.includes('/')) {
+      return normalized;
+    }
+    return `thanhba0505/${normalized}`;
+  }
+
   buildDeployPayload(channelId: string, dto: SendDeployNotificationDto) {
     const shortSha = dto.commit.slice(0, 7);
-    const repoName = dto.project === 'wonderlab' ? 'thanhba0505/wonderlab' : dto.project;
+    const repoName = this.resolveRepoSlug(dto.project);
 
     let color = '#f59e0b';
     let title = `🚀 [${dto.project.toUpperCase()}] Production Deploy Started`;
@@ -96,7 +104,7 @@ export class SlackBuilderService {
     const title = isSuccess
       ? `✅ [${dto.project.toUpperCase()}] CI Pipeline Passed`
       : `❌ [${dto.project.toUpperCase()}] CI Pipeline Failed`;
-    const repoName = dto.project === 'wonderlab' ? 'thanhba0505/wonderlab' : dto.project;
+    const repoName = this.resolveRepoSlug(dto.project);
     const shortSha = dto.commit.slice(0, 7);
 
     // Build aligned table
@@ -285,7 +293,7 @@ export class SlackBuilderService {
   }
 
   buildGitPayload(channelId: string, dto: SendGitNotificationDto) {
-    const repoName = dto.project === 'wonderlab' ? 'thanhba0505/wonderlab' : dto.project;
+    const repoName = this.resolveRepoSlug(dto.project);
     const actor = dto.actor || 'developer';
 
     if (dto.eventType === 'branch_created') {

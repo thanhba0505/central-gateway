@@ -158,7 +158,37 @@ async function main() {
   });
   console.log('Seeded Wonderlab Service Connection.');
 
-  // 5. Register Git Pulse Service Connection
+  // 5. Register Git Pulse Project, Channel Mappings, and Service Connection
+  const gitPulse = await prisma.project.upsert({
+    where: { slug: 'git-pulse' },
+    update: { name: 'Git Pulse' },
+    create: {
+      slug: 'git-pulse',
+      name: 'Git Pulse',
+      description: 'Git activity tracker and AI standup workspace for the Prism ecosystem',
+    },
+  });
+  console.log('Created or updated project:', gitPulse.name);
+
+  for (const ch of gatewayChannels) {
+    await prisma.channelMapping.upsert({
+      where: {
+        projectId_eventType: {
+          projectId: gitPulse.id,
+          eventType: ch.eventType,
+        },
+      },
+      update: {
+        channelId: ch.channelId,
+      },
+      create: {
+        projectId: gitPulse.id,
+        eventType: ch.eventType,
+        channelId: ch.channelId,
+      },
+    });
+  }
+
   await prisma.serviceConnection.upsert({
     where: { slug: 'git-pulse' },
     update: {
