@@ -35,53 +35,50 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* Custom Cosmic Violet Scrollbar (WCAG 1.4.11 >= 3:1 contrast & stable gutter) */
+/* Custom Ultra-Slim 5px Cosmic Violet Scrollbar (WCAG 1.4.11 >= 3:1 contrast & symmetric gutter) */
 .custom-scrollbar,
 .overflow-y-auto {
-  scrollbar-gutter: stable;
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-gutter: stable both-edges;
 }
 
-@supports not (scrollbar-color: auto) {
+.custom-scrollbar::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track,
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb,
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #d8b4fe;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:active,
+.overflow-y-auto::-webkit-scrollbar-thumb:active {
+  background: #e9d5ff;
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner,
+.overflow-y-auto::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+@supports not selector(::-webkit-scrollbar) {
   .custom-scrollbar,
   .overflow-y-auto {
-    scrollbar-width: auto;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar,
-  .overflow-y-auto::-webkit-scrollbar {
-    width: 7px;
-    height: 7px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-track,
-  .overflow-y-auto::-webkit-scrollbar-track {
-    background: var(--scrollbar-track);
-    border-radius: 9999px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb,
-  .overflow-y-auto::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-thumb);
-    border-radius: 9999px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover,
-  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-    background: #d8b4fe;
-    border-color: rgba(255, 255, 255, 0.3);
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb:active,
-  .overflow-y-auto::-webkit-scrollbar-thumb:active {
-    background: #e9d5ff;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-corner,
-  .overflow-y-auto::-webkit-scrollbar-corner {
-    background: transparent;
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
   }
 }
 
