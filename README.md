@@ -12,7 +12,7 @@
 [![Swagger OpenAPI](https://img.shields.io/badge/Docs-Swagger%20OpenAPI-85ea2d?style=flat-square&logo=swagger)](https://central-gateway-server.vercel.app/api/docs)
 [![License: MIT](https://img.shields.io/badge/License-MIT-6366f1?style=flat-square)](LICENSE)
 
-[🌐 Control Plane](https://central-gateway-client.vercel.app) • [📑 Swagger OpenAPI](https://central-gateway-server.vercel.app/api/docs) • [📖 Architecture Guide](docs/architecture.md) • [🚀 Deployment Guide](docs/deployment.md) • [📋 Contributing Guide](CONTRIBUTING.md)
+[🌐 Control Plane](https://central-gateway-client.vercel.app) • [📑 Swagger OpenAPI](https://central-gateway-server.vercel.app/api/docs) • [🧭 Prism Hub Docs](https://github.com/thanhba0505/prism-hub/blob/main/docs/README.md) • [📖 Architecture Guide](https://github.com/thanhba0505/prism-hub/blob/main/docs/central-gateway/architecture.md) • [🚀 Deployment Guide](https://github.com/thanhba0505/prism-hub/blob/main/docs/central-gateway/deployment.md) • [🤖 AGENTS.md](https://github.com/thanhba0505/prism-hub/blob/main/AGENTS.md)
 
 </div>
 
@@ -66,11 +66,11 @@ graph TD
 central-gateway/
 ├── client/          # Next.js 15 App Router, React 19, Tailwind CSS v4, Lucide React
 ├── server/          # NestJS 10 REST API, Prisma ORM, Slack API, Neon PostgreSQL
-├── docs/            # Technical specifications, architecture, and integration guides
 ├── .github/         # Parallel CI/CD workflows, release automation, PR & issue templates
-├── .agents/skills/  # Coding guidelines, IAM specifications, and design standards
 └── scripts/         # Automated release version synchronization and verification scripts
 ```
+
+> Architectural documentation, API contracts, AI rules (`AGENTS.md`), and shared local Docker PostgreSQL orchestration are centralized in [`thanhba0505/prism-hub`](https://github.com/thanhba0505/prism-hub).
 
 | Workspace    | Technology Stack                              | Local Port | Role & Responsibility                                                              |
 | :----------- | :-------------------------------------------- | :--------: | :--------------------------------------------------------------------------------- |
@@ -85,37 +85,33 @@ central-gateway/
 
 - **Node.js**: `v24.x` (enforced via `.nvmrc`)
 - **Package Manager**: `pnpm` `12.11.2` (`npm i -g pnpm@12.11.2`)
-- **Docker**: For local PostgreSQL 16 container (`127.0.0.1:5432`)
+- **PostgreSQL 16**: Running on `127.0.0.1:5432` (managed centrally via Docker Compose in `prism-hub` or native local Postgres)
 
-### 1. Clone & Install Dependencies
+### 1. Recommended Setup via Prism Hub
+
+```bash
+git clone https://github.com/thanhba0505/prism-hub.git
+cd prism-hub
+make init            # Starts shared PostgreSQL (127.0.0.1:5432), installs deps & syncs DBs
+make gateway-start   # Starts Central Gateway client (5100) + server (5101)
+```
+
+### 2. Standalone Usage (Requires PostgreSQL 16 on `127.0.0.1:5432` with `central_gateway` DB)
 
 ```bash
 git clone https://github.com/thanhba0505/central-gateway.git
 cd central-gateway
 cp .env.example .env.local
 pnpm install
+pnpm dev             # Client on 5100 + Server on 5101
 ```
 
-### 2. Start Local PostgreSQL Database
+Or run individually:
 
-```bash
-docker compose up -d postgres
-```
+- `pnpm dev:client` — Next.js Client on port `5100`
+- `pnpm dev:server` — NestJS Server on port `5101`
 
-_(PostgreSQL securely binds to loopback `127.0.0.1:5432` with database `central_gateway`)_
-
-### 3. Run Development Servers
-
-```bash
-# Start both Client and Server concurrently:
-pnpm dev
-
-# Or run services individually:
-pnpm dev:client   # Next.js Client on port 5100
-pnpm dev:server   # NestJS Server on port 5101
-```
-
-### 4. Verification & Testing
+### 3. Verification & Testing
 
 ```bash
 pnpm check          # Full pipeline: Format -> Lint -> Typecheck -> Unit Tests -> Build
@@ -128,12 +124,15 @@ pnpm format:check   # Prettier code formatting check
 
 ## 📑 Technical Documentation Index
 
-Explore in-depth technical guides in `docs/`:
+All technical guides, API references, and AI coding guidelines have moved to the central **[Prism Hub](https://github.com/thanhba0505/prism-hub)** repository:
 
-- [System Architecture](docs/architecture.md)
-- [Deployment & Vercel Serverless Operations](docs/deployment.md)
-- [API Reference & S2S Contracts](docs/api-reference.md)
-- [Slack Integration & Block Kit Guide](docs/slack-integration.md)
+- [Prism Hub Documentation Hub](https://github.com/thanhba0505/prism-hub/blob/main/docs/README.md)
+- [Unified AGENTS.md & Contributing Guide](https://github.com/thanhba0505/prism-hub/blob/main/AGENTS.md)
+- [System Architecture & IAM Hub](https://github.com/thanhba0505/prism-hub/blob/main/docs/central-gateway/architecture.md)
+- [API Reference & S2S Contracts](https://github.com/thanhba0505/prism-hub/blob/main/docs/central-gateway/api-reference.md)
+- [Slack Integration & Block Kit Guide](https://github.com/thanhba0505/prism-hub/blob/main/docs/central-gateway/slack-integration.md)
+- [Deployment & Vercel Serverless Operations](https://github.com/thanhba0505/prism-hub/blob/main/docs/central-gateway/deployment.md)
+- [Shared Database & Neon Safety Guide](https://github.com/thanhba0505/prism-hub/blob/main/docs/shared/database.md)
 
 ---
 
