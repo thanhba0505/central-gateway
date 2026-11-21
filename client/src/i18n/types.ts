@@ -134,6 +134,7 @@ export interface AuthDictionary {
   sign_in_btn: string;
   signing_in: string;
   google_btn: string;
+  google_connecting: string;
   google_prompt: string;
   google_fail: string;
   google_production_notice: string;
