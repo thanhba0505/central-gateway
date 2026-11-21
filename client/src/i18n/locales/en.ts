@@ -129,6 +129,7 @@ export const en: TranslationDictionary = {
     sign_in_btn: 'Sign In',
     signing_in: 'Authenticating...',
     google_btn: 'Continue with Google',
+    google_connecting: 'Connecting to Google...',
     google_prompt: 'Google Sign In: Enter your Google email address (or keep default admin email):',
     google_fail: 'Google login failed',
     google_production_notice:

@@ -129,6 +129,7 @@ export const vi: TranslationDictionary = {
     sign_in_btn: 'Đăng nhập',
     signing_in: 'Đang xác thực...',
     google_btn: 'Tiếp tục với Google',
+    google_connecting: 'Đang kết nối Google...',
     google_prompt:
       'Đăng nhập Google: Nhập địa chỉ email Google của bạn (hoặc giữ nguyên email quản trị mặc định):',
     google_fail: 'Đăng nhập Google thất bại',
