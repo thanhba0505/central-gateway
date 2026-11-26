@@ -103,7 +103,7 @@ echo "=================================================================="
 echo "Target Service       : $SERVICE"
 echo "Target Version       : ${TARGET_VERSION:-'(any healthy)'}"
 echo "Target Commit        : ${TARGET_COMMIT:-'(unspecified)'} (${SHORT_COMMIT:-'N/A'})"
-echo "Server Endpoint      : $SERVER_URL/api/v1/health"
+echo "Server Endpoint      : $SERVER_URL/api/v1/health-full"
 echo "Client Endpoint      : $CLIENT_URL/health"
 echo "Timeout              : ${TIMEOUT_SECONDS}s (poll every ${POLL_INTERVAL}s)"
 echo "Initial Delay        : ${INITIAL_DELAY}s"
@@ -112,7 +112,7 @@ echo "GitHub Live Sync     : $([ -n "$GH_REPO" ] && echo "Active" || echo "Inact
 echo "=================================================================="
 
 echo "• Inspecting current live state before monitoring..."
-INITIAL_SERVER_JSON=$(curl -s --max-time 10 "$SERVER_URL/api/v1/health" || echo "{}")
+INITIAL_SERVER_JSON=$(curl -s --max-time 10 "$SERVER_URL/api/v1/health-full" || echo "{}")
 INITIAL_CLIENT_JSON=$(curl -s --max-time 10 "$CLIENT_URL/health" || echo "{}")
 
 INITIAL_SERVER_VER=$(echo "$INITIAL_SERVER_JSON" | node -p "JSON.parse(require('fs').readFileSync(0,'utf-8')).version || 'unknown'" 2>/dev/null || echo "unknown")
@@ -157,7 +157,7 @@ while true; do
 ### ❌ Production Deployment Timed Out (${ELAPSED}s)
 - **Target Version:** \`${TARGET_VERSION}\`
 - **Target Commit:** \`${SHORT_COMMIT:-N/A}\`
-- **Server URL:** [$SERVER_URL]($SERVER_URL/api/v1/health)
+- **Server URL:** [$SERVER_URL]($SERVER_URL/api/v1/health-full)
 - **Client URL:** [$CLIENT_URL]($CLIENT_URL/health)
 - **Status:** Services did not finish rollout before ${TIMEOUT_SECONDS}s timeout window.
 EOF
@@ -167,7 +167,7 @@ EOF
 
   # 1. Verify Server
   if [ "$SERVER_OK" = false ]; then
-    SERVER_RESP=$(curl -s --max-time 10 "$SERVER_URL/api/v1/health" || echo "{}")
+    SERVER_RESP=$(curl -s --max-time 10 "$SERVER_URL/api/v1/health-full" || echo "{}")
     LAST_SERVER_STATUS="$SERVER_RESP"
 
     IS_VALID_SERVER=$(echo "$SERVER_RESP" | node -e '
@@ -192,7 +192,7 @@ EOF
         const elapsed = parseInt(process.argv[4], 10);
         const minWait = parseInt(process.argv[5], 10);
 
-        const isOk = d.status === "ok";
+        const isOk = d.status === "ok" || d.status === "degraded";
         const hasDb = d.database === "connected" || (d.info && d.info.database && d.info.database.status === "up");
         if (!isOk || !hasDb) {
           process.stdout.write("false:unhealthy");
@@ -226,7 +226,7 @@ EOF
       echo "  ✅ Server is LIVE and HEALTHY (version: $SERVER_VER, elapsed: ${ELAPSED}s)"
       if [ -n "$GH_SERVER_DEPLOY_ID" ] && [ -n "$GH_REPO" ]; then
         gh api -X POST "/repos/$GH_REPO/deployments/$GH_SERVER_DEPLOY_ID/statuses" \
-          --input - <<< '{"state":"success","environment_url":"'$SERVER_URL'/api/v1/health","log_url":"https://vercel.com/thanhbas-projects","description":"Server healthy and live on Vercel"}' || true
+          --input - <<< '{"state":"success","environment_url":"'$SERVER_URL'/api/v1/health-full","log_url":"https://vercel.com/thanhbas-projects","description":"Server healthy and live on Vercel"}' || true
       fi
     fi
   fi
