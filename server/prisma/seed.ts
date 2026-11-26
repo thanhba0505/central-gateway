@@ -195,7 +195,7 @@ async function main() {
       name: 'Git Pulse Platform',
       domain:
         process.env.NODE_ENV === 'production'
-          ? 'https://git-pulse-server.onrender.com'
+          ? 'https://git-pulse-server.vercel.app'
           : 'http://localhost:6101',
       apiPrefix: '/api/v1',
       apiKey: encryptS2SSecret('gw_to_gp_s2s_secret_2026'),
@@ -209,7 +209,7 @@ async function main() {
       name: 'Git Pulse Platform',
       domain:
         process.env.NODE_ENV === 'production'
-          ? 'https://git-pulse-server.onrender.com'
+          ? 'https://git-pulse-server.vercel.app'
           : 'http://localhost:6101',
       apiPrefix: '/api/v1',
       apiKey: encryptS2SSecret('gw_to_gp_s2s_secret_2026'),
