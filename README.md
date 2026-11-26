@@ -6,7 +6,7 @@
 
 [![CI Pipeline](https://github.com/thanhba0505/central-gateway/actions/workflows/ci.yml/badge.svg)](https://github.com/thanhba0505/central-gateway/actions/workflows/ci.yml)
 [![Latest Release](https://img.shields.io/github/v/release/thanhba0505/central-gateway?color=0284c7&style=flat-square&label=Release)](https://github.com/thanhba0505/central-gateway/releases)
-[![Version](https://img.shields.io/badge/version-v0.7.0-0284c7?style=flat-square)](https://github.com/thanhba0505/central-gateway/releases)
+[![Version](https://img.shields.io/badge/version-v0.7.1-0284c7?style=flat-square)](https://github.com/thanhba0505/central-gateway/releases)
 [![Client Control Plane](https://img.shields.io/badge/Client-Live%20on%20Vercel-10b981?style=flat-square&logo=vercel)](https://central-gateway-client.vercel.app)
 [![Server API](https://img.shields.io/badge/Server-API%20v1-0284c7?style=flat-square&logo=nestjs)](https://central-gateway-server.vercel.app/api/v1)
 [![Swagger OpenAPI](https://img.shields.io/badge/Docs-Swagger%20OpenAPI-85ea2d?style=flat-square&logo=swagger)](https://central-gateway-server.vercel.app/api/docs)
