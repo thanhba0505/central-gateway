@@ -97,3 +97,64 @@ model ServiceConnection {
 
   @@map("service_connections")
 }
+
+model CronFolder {
+  id               String    @id @default(uuid())
+  serviceSlug      String    @map("service_slug") @db.VarChar(64)
+  folderTitle      String    @unique @map("folder_title") @db.VarChar(128)
+  externalFolderId Int       @map("external_folder_id")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  jobs             CronJob[]
+
+  @@index([serviceSlug])
+  @@map("cron_folders")
+}
+
+model CronJob {
+  id                String      @id @default(uuid())
+  serviceSlug       String      @map("service_slug") @db.VarChar(64)
+  jobKey            String      @map("job_key") @db.VarChar(80)
+  title             String      @db.VarChar(160)
+  endpointPath      String      @map("endpoint_path") @db.VarChar(255)
+  httpMethod        String      @default("POST") @map("http_method") @db.VarChar(16)
+  targetUrl         String      @map("target_url") @db.VarChar(512)
+  schedule          Json
+  timeoutSeconds    Int         @default(30) @map("timeout_seconds")
+  enabled           Boolean     @default(false)
+  saveResponses     Boolean     @default(true) @map("save_responses")
+  encryptedHeaders  String?     @map("encrypted_headers") @db.Text
+  headerKeys        String[]    @default([]) @map("header_keys")
+  externalJobId     Int?        @unique @map("external_job_id")
+  folderId          String?     @map("folder_id")
+  folder            CronFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  lastSyncedAt      DateTime?   @map("last_synced_at")
+  lastTriggerAt     DateTime?   @map("last_trigger_at")
+  lastTriggerStatus Int?        @map("last_trigger_status")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+
+  @@unique([serviceSlug, jobKey])
+  @@index([serviceSlug])
+  @@map("cron_jobs")
+}
+
+model PlatformLink {
+  id             String   @id @default(uuid())
+  slug           String   @unique @db.VarChar(80)
+  title          String   @db.VarChar(120)
+  category       String   @db.VarChar(48)
+  url            String   @db.VarChar(512)
+  secondaryUrl   String?  @map("secondary_url") @db.VarChar(512)
+  secondaryLabel String?  @map("secondary_label") @db.VarChar(60)
+  description    String?  @db.VarChar(300)
+  accountNote    String?  @map("account_note") @db.VarChar(255)
+  environment    String   @default("ALL") @db.VarChar(24)
+  sortOrder      Int      @default(0) @map("sort_order")
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@index([category, sortOrder])
+  @@map("platform_links")
+}

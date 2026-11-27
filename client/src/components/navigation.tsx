@@ -7,6 +7,8 @@ import {
   FolderGit2,
   LayoutDashboard,
   Users,
+  Clock3,
+  Compass,
   LogIn,
   LogOut,
   ChevronDown,
@@ -37,6 +39,8 @@ export function Navigation() {
       { name: dict.nav.overview, href: '/', icon: LayoutDashboard },
       { name: dict.nav.projects, href: '/projects', icon: FolderGit2 },
       { name: dict.nav.users, href: '/users', icon: Users },
+      { name: dict.nav.cron, href: '/cron', icon: Clock3 },
+      { name: dict.nav.platforms, href: '/platforms', icon: Compass },
     ],
     [dict],
   );
