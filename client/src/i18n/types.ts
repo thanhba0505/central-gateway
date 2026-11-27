@@ -7,6 +7,8 @@ export interface NavDictionary {
   overview: string;
   projects: string;
   users: string;
+  cron: string;
+  platforms: string;
   login: string;
   logout: string;
   role: string;
@@ -172,12 +174,97 @@ export interface IntroDictionary {
   tagline: string;
 }
 
+export interface CronDictionary {
+  badge: string;
+  title: string;
+  subtitle: string;
+  create_btn: string;
+  sync_folders_btn: string;
+  syncing_folders: string;
+  configured_ok: string;
+  configured_missing: string;
+  folder_pattern: string;
+  total_folders: string;
+  total_jobs: string;
+  no_jobs: string;
+  no_jobs_desc: string;
+  localhost_notice: string;
+  field_service: string;
+  field_job_key: string;
+  field_title: string;
+  field_path: string;
+  field_method: string;
+  field_preset: string;
+  field_timezone: string;
+  field_hours: string;
+  field_minutes: string;
+  field_header_key: string;
+  field_header_value: string;
+  field_enabled: string;
+  preset_every_10m: string;
+  preset_every_15m: string;
+  preset_daily_20h: string;
+  preset_custom: string;
+  enable: string;
+  pause: string;
+  trigger_now: string;
+  triggering: string;
+  history: string;
+  history_title: string;
+  no_history: string;
+  confirm_delete: string;
+  last_trigger: string;
+  modal_title: string;
+  submit_create: string;
+}
+
+export interface PlatformsDictionary {
+  badge: string;
+  title: string;
+  subtitle: string;
+  add_btn: string;
+  search_placeholder: string;
+  no_links: string;
+  no_links_desc: string;
+  open_primary: string;
+  copy_url: string;
+  copied: string;
+  edit_btn: string;
+  note_label: string;
+  inactive_badge: string;
+  modal_create_title: string;
+  modal_edit_title: string;
+  field_title: string;
+  field_slug: string;
+  field_category: string;
+  field_environment: string;
+  field_url: string;
+  field_secondary_url: string;
+  field_secondary_label: string;
+  field_description: string;
+  field_account_note: string;
+  field_sort_order: string;
+  field_active: string;
+  confirm_delete: string;
+  categories: {
+    all: string;
+    apps: string;
+    infra: string;
+    source: string;
+    auth_notify: string;
+    ai_standup: string;
+    planned: string;
+  };
+}
+
 export interface TranslationDictionary {
   nav: NavDictionary;
   common: CommonDictionary;
   dashboard: DashboardDictionary;
   projects: ProjectsDictionary;
   users: UsersDictionary;
+  cron: CronDictionary;
+  platforms: PlatformsDictionary;
   auth: AuthDictionary;
   admin_guard: AdminGuardDictionary;
   footer: FooterDictionary;

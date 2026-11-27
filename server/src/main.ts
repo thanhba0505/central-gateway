@@ -55,7 +55,20 @@ export function configureApp(app: INestApplication): void {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document);
+  const swaggerUiCdn = 'https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.18.2';
+  SwaggerModule.setup('api/docs', app, document, {
+    customSiteTitle: 'Central Gateway API Docs',
+    ...(process.env.VERCEL
+      ? {
+          customCssUrl: `${swaggerUiCdn}/swagger-ui.css`,
+          customJs: [
+            `${swaggerUiCdn}/swagger-ui-bundle.js`,
+            `${swaggerUiCdn}/swagger-ui-standalone-preset.js`,
+          ],
+          customfavIcon: `${swaggerUiCdn}/favicon-32x32.png`,
+        }
+      : {}),
+  });
 }
 
 async function bootstrap() {

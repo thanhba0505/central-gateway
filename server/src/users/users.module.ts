@@ -9,6 +9,6 @@ import { AdminOrS2SGuard } from './admin-or-s2s.guard';
   imports: [PrismaModule, AuthModule],
   controllers: [UsersController],
   providers: [UsersService, AdminOrS2SGuard],
-  exports: [UsersService],
+  exports: [UsersService, AdminOrS2SGuard],
 })
 export class UsersModule {}

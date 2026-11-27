@@ -56,6 +56,101 @@ export interface DevDbUser {
   isActive?: boolean;
 }
 
+export type CronHttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+
+export interface CronSchedule {
+  timezone: string;
+  expiresAt?: number;
+  hours: number[];
+  minutes: number[];
+  mdays: number[];
+  months: number[];
+  wdays: number[];
+}
+
+export interface CronFolderItem {
+  id: string;
+  serviceSlug: string;
+  folderTitle: string;
+  externalFolderId: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CronJobItem {
+  id: string;
+  serviceSlug: string;
+  jobKey: string;
+  title: string;
+  endpointPath: string;
+  httpMethod: CronHttpMethod;
+  targetUrl: string;
+  schedule: CronSchedule;
+  timeoutSeconds: number;
+  enabled: boolean;
+  saveResponses: boolean;
+  headerKeys: string[];
+  externalJobId: number | null;
+  folderId: string | null;
+  folderTitle: string | null;
+  externalFolderId: number | null;
+  lastSyncedAt: string | null;
+  lastTriggerAt: string | null;
+  lastTriggerStatus: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CronBrokerStatus {
+  configured: boolean;
+  folderPrefix: string;
+  folderSuffix: string;
+  environment: string;
+  availableServices: string[];
+}
+
+export interface CronHistoryEntry {
+  jobLogId?: number;
+  jobId: number;
+  date: number;
+  datePlanned: number;
+  jitter: number;
+  duration: number;
+  status: number;
+  statusText: string;
+  httpStatus?: number;
+}
+
+export interface CronTriggerResult {
+  ok: boolean;
+  httpStatus: number;
+  latencyMs: number;
+  targetUrl: string;
+  bodyPreview: string;
+}
+
+export type PlatformLinkCategory =
+  'apps' | 'infra' | 'source' | 'auth_notify' | 'ai_standup' | 'planned';
+
+export type PlatformLinkEnvironment = 'ALL' | 'PRODUCTION' | 'LOCAL';
+
+export interface PlatformLinkItem {
+  id: string;
+  slug: string;
+  title: string;
+  category: PlatformLinkCategory;
+  url: string;
+  secondaryUrl: string | null;
+  secondaryLabel: string | null;
+  description: string | null;
+  accountNote: string | null;
+  environment: PlatformLinkEnvironment;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export function getGatewaySecretKey(): string {
   if (typeof window === 'undefined') return '';
   return localStorage.getItem('central_gateway_secret_key') || '';
@@ -217,6 +312,144 @@ export const api = {
     return request<{ user: CurrentUser }>('/auth/google', {
       method: 'POST',
       body: JSON.stringify(payload),
+    });
+  },
+
+  // Cron Broker Management
+  async getCronStatus(): Promise<CronBrokerStatus> {
+    return request<CronBrokerStatus>('/cron/status');
+  },
+
+  async getCronFolders(): Promise<CronFolderItem[]> {
+    return request<CronFolderItem[]>('/cron/folders');
+  },
+
+  async syncCronFolders(): Promise<CronFolderItem[]> {
+    return request<CronFolderItem[]>('/cron/folders/sync', {
+      method: 'POST',
+    });
+  },
+
+  async getCronJobs(): Promise<CronJobItem[]> {
+    return request<CronJobItem[]>('/cron/jobs');
+  },
+
+  async upsertCronJob(payload: {
+    serviceSlug: string;
+    jobKey: string;
+    title: string;
+    endpointPath: string;
+    httpMethod?: CronHttpMethod;
+    schedule: CronSchedule;
+    timeoutSeconds?: number;
+    enabled?: boolean;
+    saveResponses?: boolean;
+    headers?: Record<string, string>;
+  }): Promise<CronJobItem> {
+    return request<CronJobItem>('/cron/jobs', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async updateCronJob(
+    id: string,
+    payload: {
+      title?: string;
+      endpointPath?: string;
+      httpMethod?: CronHttpMethod;
+      schedule?: CronSchedule;
+      timeoutSeconds?: number;
+      enabled?: boolean;
+      saveResponses?: boolean;
+      headers?: Record<string, string>;
+    },
+  ): Promise<CronJobItem> {
+    return request<CronJobItem>(`/cron/jobs/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async deleteCronJob(id: string): Promise<{ deleted: true; id: string }> {
+    return request<{ deleted: true; id: string }>(`/cron/jobs/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async getCronJobHistory(
+    id: string,
+  ): Promise<{ history: CronHistoryEntry[]; predictions?: number[] }> {
+    return request<{ history: CronHistoryEntry[]; predictions?: number[] }>(
+      `/cron/jobs/${id}/history`,
+    );
+  },
+
+  async triggerCronJob(id: string): Promise<CronTriggerResult> {
+    return request<CronTriggerResult>(`/cron/jobs/${id}/trigger`, {
+      method: 'POST',
+    });
+  },
+
+  // Platform Directory Links
+  async getPlatformLinks(params?: {
+    category?: string;
+    search?: string;
+  }): Promise<PlatformLinkItem[]> {
+    const query = new URLSearchParams();
+    if (params?.category && params.category !== 'all') {
+      query.set('category', params.category);
+    }
+    if (params?.search?.trim()) {
+      query.set('search', params.search.trim());
+    }
+    const qs = query.toString();
+    return request<PlatformLinkItem[]>(`/platform-links${qs ? `?${qs}` : ''}`);
+  },
+
+  async createPlatformLink(payload: {
+    slug?: string;
+    title: string;
+    category: PlatformLinkCategory;
+    url: string;
+    secondaryUrl?: string | null;
+    secondaryLabel?: string | null;
+    description?: string | null;
+    accountNote?: string | null;
+    environment?: PlatformLinkEnvironment;
+    sortOrder?: number;
+    isActive?: boolean;
+  }): Promise<PlatformLinkItem> {
+    return request<PlatformLinkItem>('/platform-links', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async updatePlatformLink(
+    id: string,
+    payload: {
+      title?: string;
+      category?: PlatformLinkCategory;
+      url?: string;
+      secondaryUrl?: string | null;
+      secondaryLabel?: string | null;
+      description?: string | null;
+      accountNote?: string | null;
+      environment?: PlatformLinkEnvironment;
+      sortOrder?: number;
+      isActive?: boolean;
+    },
+  ): Promise<PlatformLinkItem> {
+    return request<PlatformLinkItem>(`/platform-links/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async deletePlatformLink(id: string): Promise<{ deleted: true; id: string }> {
+    return request<{ deleted: true; id: string }>(`/platform-links/${id}`, {
+      method: 'DELETE',
     });
   },
 };
